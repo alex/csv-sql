@@ -1,11 +1,11 @@
-CSV QL
-======
+CSV SQL
+=======
 
 Take a CSV file, query it with SQL. Magic!
 
 .. code-block:: console
 
-    $ python csvql.py file.csv
+    $ python csvsql.py file.csv
     Loaded 3162 rows into t(domain, base_domain, agency, sslv2)
     > SELECT COUNT(*) FROM t
     +----------+
