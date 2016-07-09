@@ -12,7 +12,6 @@ class Row(object):
         self.normalized = normalized
 
 
-
 def _normalize_cols(fieldnames):
     return [
         Row(f, f.lower().replace(" ", "_"))
@@ -64,7 +63,7 @@ def main(argv):
         query = sys.stdin.readline()
         with closing(db.cursor()) as c:
             c.execute(query)
-            header = [name for name, _, _, _ , _, _, _ in c.description]
+            header = [name for name, _, _, _, _, _, _ in c.description]
             table = AsciiTable([header] + [list(r) for r in c.fetchall()])
             print(table.table)
 
