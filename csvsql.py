@@ -1,4 +1,5 @@
 import csv
+import re
 import sqlite3
 import sys
 from contextlib import closing
@@ -12,9 +13,15 @@ class Row(object):
         self.normalized = normalized
 
 
+_PARENTHENTICAL_RE = re.compile(r"\(.*?\)")
+
+def _normalize_col(f):
+    f = _PARENTHENTICAL_RE.sub("", f)
+    return f.lower().strip().replace(" ", "_").replace("?", "")
+
 def _normalize_cols(fieldnames):
     return [
-        Row(f, f.lower().replace(" ", "_"))
+        Row(f, _normalize_col(f))
         for f in fieldnames
     ]
 
@@ -61,7 +68,10 @@ def main(argv):
     while True:
         sys.stdout.write("> ")
         query = sys.stdin.readline()
+        if query == "exit\n":
+            sys.exit()
         with closing(db.cursor()) as c:
+            # TODO: error handling
             c.execute(query)
             header = [name for name, _, _, _, _, _, _ in c.description]
             table = AsciiTable([header] + [list(r) for r in c.fetchall()])
