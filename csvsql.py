@@ -17,7 +17,7 @@ _PARENTHENTICAL_RE = re.compile(r"\(.*?\)")
 
 def _normalize_col(f):
     f = _PARENTHENTICAL_RE.sub("", f)
-    return f.lower().strip().replace(" ", "_").replace("?", "")
+    return f.lower().strip().replace(" ", "_").replace(".", "_").replace("?", "")
 
 def _normalize_cols(fieldnames):
     return [
