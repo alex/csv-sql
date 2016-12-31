@@ -20,8 +20,7 @@ fn _normalize_col(col: &String) -> String {
 fn _create_table(db: &mut sqlite3::DatabaseConnection, table_name: &str, cols: &Vec<String>) {
     let create_columns =
         cols.iter().map(|c| format!("{} varchar", c)).collect::<Vec<String>>().join(", ");
-    db.exec(&format!("CREATE TABLE {} ({})", table_name, create_columns))
-        .unwrap();
+    db.exec(&format!("CREATE TABLE {} ({})", table_name, create_columns)).unwrap();
 }
 
 fn _insert_row(db: &mut sqlite3::DatabaseConnection,
