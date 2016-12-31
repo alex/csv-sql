@@ -9,22 +9,32 @@ use std::env;
 
 fn _normalize_col(col: &String) -> String {
     let re = regex::Regex::new(r"\(.*?\)").unwrap();
-    return re.replace_all(col, "").to_lowercase().trim().replace(" ", "_").replace(".", "_").replace("?", "");
+    return re.replace_all(col, "")
+        .to_lowercase()
+        .trim()
+        .replace(" ", "_")
+        .replace(".", "_")
+        .replace("?", "");
 }
 
 fn _create_table(db: &mut sqlite3::DatabaseConnection, table_name: &str, cols: &Vec<String>) {
-    let create_columns = cols.iter().map(|c| format!("{} varchar", c)).collect::<Vec<String>>().join(", ");
-    db.exec(
-        &format!("CREATE TABLE {} ({})", table_name, create_columns)
-    ).unwrap();
+    let create_columns =
+        cols.iter().map(|c| format!("{} varchar", c)).collect::<Vec<String>>().join(", ");
+    db.exec(&format!("CREATE TABLE {} ({})", table_name, create_columns))
+        .unwrap();
 }
 
-fn _insert_row(db: &mut sqlite3::DatabaseConnection, table_name: &str, row: Vec<String>,
+fn _insert_row(db: &mut sqlite3::DatabaseConnection,
+               table_name: &str,
+               row: Vec<String>,
                cols: &Vec<String>) {
-    let placeholders = cols.iter().enumerate().map(|(idx, _)| format!("${}", idx + 1)).collect::<Vec<String>>().join(", ");
-    let mut stmt = db.prepare(
-        &format!("INSERT INTO {} VALUES ({})", table_name, placeholders)
-    ).unwrap();
+    let placeholders = cols.iter()
+        .enumerate()
+        .map(|(idx, _)| format!("${}", idx + 1))
+        .collect::<Vec<String>>()
+        .join(", ");
+    let mut stmt = db.prepare(&format!("INSERT INTO {} VALUES ({})", table_name, placeholders))
+        .unwrap();
 
     for (idx, value) in row.iter().enumerate() {
         stmt.bind_text((idx + 1) as sqlite3::ParamIx, value).unwrap();
@@ -66,9 +76,7 @@ fn _print_table(conn: &mut sqlite3::DatabaseConnection, line: &str) {
     while let Some(r) = results.step().unwrap() {
         let mut row = prettytable::row::Row::new(vec![]);
         for i in 0..r.column_count() {
-            row.add_cell(
-                prettytable::cell::Cell::new(&r.column_text(i).unwrap_or("".to_string()))
-            );
+            row.add_cell(prettytable::cell::Cell::new(&r.column_text(i).unwrap_or("".to_string())));
         }
         table.add_row(row);
     }
@@ -97,18 +105,18 @@ fn main() {
                 }
                 rl.add_history_entry(&line);
                 _print_table(&mut conn, &line);
-            },
+            }
             Err(rustyline::error::ReadlineError::Interrupted) => {
                 println!("Interrupted");
                 continue;
             }
             Err(rustyline::error::ReadlineError::Eof) => {
                 break;
-            },
+            }
             Err(err) => {
                 println!("Error: {}", err);
                 break;
-            },
+            }
         }
     }
 }
