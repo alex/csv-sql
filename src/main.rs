@@ -12,10 +12,6 @@ fn _normalize_col(col: &String) -> String {
     return re.replace_all(col, "").to_lowercase().trim().replace(" ", "_").replace(".", "_").replace("?", "");
 }
 
-fn _normalize_cols(cols: Vec<String>) -> Vec<String> {
-    return cols.iter().map(_normalize_col).collect();
-}
-
 fn _create_table(db: &mut sqlite3::DatabaseConnection, table_name: &str, cols: &Vec<String>) {
     let create_columns = cols.iter().map(|c| format!("{} varchar", c)).collect::<Vec<String>>().join(", ");
     db.exec(
@@ -40,7 +36,7 @@ fn _load_table_from_path(db: &mut sqlite3::DatabaseConnection, table_name: &str,
     let mut num_rows = 0;
     let mut reader = csv::Reader::from_file(path).unwrap();
 
-    let normalized_cols = _normalize_cols(reader.headers().unwrap());
+    let normalized_cols = reader.headers().unwrap().iter().map(_normalize_col).collect();
     _create_table(db, table_name, &normalized_cols);
 
     for row in reader.decode() {
