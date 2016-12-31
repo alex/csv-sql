@@ -1,4 +1,5 @@
 extern crate csv;
+#[macro_use] extern crate lazy_static;
 extern crate prettytable;
 extern crate regex;
 extern crate rustyline;
@@ -8,8 +9,10 @@ use std::env;
 
 
 fn _normalize_col(col: &String) -> String {
-    let re = regex::Regex::new(r"\(.*?\)").unwrap();
-    return re.replace_all(col, "")
+    lazy_static! {
+        static ref RE: regex::Regex = regex::Regex::new(r"\(.*?\)").unwrap();
+    }
+    return RE.replace_all(col, "")
         .to_lowercase()
         .trim()
         .replace(" ", "_")

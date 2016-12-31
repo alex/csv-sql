@@ -3,6 +3,7 @@ name = "csvsql"
 version = "0.1.0"
 dependencies = [
  "csv 0.14.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "prettytable-rs 0.6.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.80 (registry+https://github.com/rust-lang/crates.io-index)",
  "rust-sqlite 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
