@@ -113,7 +113,7 @@ fn main() {
 
     let mut conn = sqlite3::DatabaseConnection::in_memory().unwrap();
 
-    let mut base_words = vec!["select", "from", "group", "by", "order", "count"]
+    let mut base_words = vec!["distinct", "select", "from", "group", "by", "order", "count"]
         .iter()
         .map(|s| s.to_string())
         .collect::<Vec<String>>();
