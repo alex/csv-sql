@@ -82,6 +82,28 @@ fn _print_table(conn: &mut sqlite3::DatabaseConnection, line: &str) {
     table.printstd();
 }
 
+struct SimpleWordCompleter {
+    words: Vec<String>,
+}
+
+
+static BREAK_CHARS: [char; 4] = [' ', '(', ')', ','];
+impl SimpleWordCompleter {
+    fn new(words: Vec<String>) -> SimpleWordCompleter {
+        return SimpleWordCompleter { words: words };
+    }
+}
+
+impl rustyline::completion::Completer for SimpleWordCompleter {
+    fn complete(&self, line: &str, pos: usize) -> rustyline::Result<(usize, Vec<String>)> {
+        let (start, word) =
+            rustyline::completion::extract_word(line, pos, &BREAK_CHARS.iter().cloned().collect());
+
+        let matches = self.words.iter().filter(|w| w.starts_with(word)).cloned().collect();
+        return Ok((start, matches));
+    }
+}
+
 fn main() {
     let mut paths = env::args().skip(1);
 
@@ -95,7 +117,11 @@ fn main() {
         }
     }
 
-    let mut rl = rustyline::Editor::<()>::new();
+    let base_words =
+        vec!["select", "from", "group", "by", "order"].iter().map(|s| s.to_string()).collect();
+    let completer = SimpleWordCompleter::new(base_words);
+    let mut rl = rustyline::Editor::new();
+    rl.set_completer(Some(completer));
     loop {
         match rl.readline("> ") {
             Ok(line) => {
