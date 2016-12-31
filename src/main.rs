@@ -41,7 +41,10 @@ fn _insert_row(db: &mut sqlite3::DatabaseConnection,
     assert!(stmt.execute().step().unwrap().is_none());
 }
 
-fn _load_table_from_path(db: &mut sqlite3::DatabaseConnection, table_name: &str, path: String) {
+fn _load_table_from_path(db: &mut sqlite3::DatabaseConnection,
+                         table_name: &str,
+                         path: String)
+                         -> Vec<String> {
     let mut num_rows = 0;
     let mut reader = csv::Reader::from_file(path).unwrap();
 
@@ -59,6 +62,7 @@ fn _load_table_from_path(db: &mut sqlite3::DatabaseConnection, table_name: &str,
         table_name,
         normalized_cols.join(", "),
     );
+    return normalized_cols;
 }
 
 fn _print_table(conn: &mut sqlite3::DatabaseConnection, line: &str) {
@@ -109,16 +113,21 @@ fn main() {
 
     let mut conn = sqlite3::DatabaseConnection::in_memory().unwrap();
 
+    let mut base_words = vec!["select", "from", "group", "by", "order", "count"]
+        .iter()
+        .map(|s| s.to_string())
+        .collect::<Vec<String>>();
+
     if paths.len() == 1 {
-        _load_table_from_path(&mut conn, "t", paths.next().unwrap());
+        let mut col_names = _load_table_from_path(&mut conn, "t", paths.next().unwrap());
+        base_words.append(&mut col_names);
     } else {
         for (idx, path) in paths.enumerate() {
-            _load_table_from_path(&mut conn, &format!("t{}", idx + 1), path);
+            let mut col_names = _load_table_from_path(&mut conn, &format!("t{}", idx + 1), path);
+            base_words.append(&mut col_names);
         }
     }
 
-    let base_words =
-        vec!["select", "from", "group", "by", "order"].iter().map(|s| s.to_string()).collect();
     let completer = SimpleWordCompleter::new(base_words);
     let mut rl = rustyline::Editor::new();
     rl.set_completer(Some(completer));
