@@ -92,7 +92,7 @@ fn main() {
     loop {
         match rl.readline("> ") {
             Ok(line) => {
-                if line.is_empty() {
+                if line.trim().is_empty() {
                     continue;
                 }
                 rl.add_history_entry(&line);
