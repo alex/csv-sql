@@ -14,7 +14,7 @@ Take a CSV file, query it with SQL. Magic!
 
 All your rows go into a table named ``t``. It's great!
 
-You can also specific multiple files:
+You can also specify multiple files:
 
 .. code-block:: console
 
