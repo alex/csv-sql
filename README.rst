@@ -13,3 +13,12 @@ Take a CSV file, query it with SQL. Magic!
     +----------+
 
 All your rows go into a table named ``t``. It's great!
+
+You can also specific multiple files:
+
+.. code-block:: console
+
+    $ cargo run file1.csv file2.csv
+    Loaded 12 rows into t1(some, schema)
+    Loaded 74 rows into t2(some, other, schema)
+    >
