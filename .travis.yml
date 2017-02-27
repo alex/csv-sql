@@ -5,6 +5,6 @@ rust:
     - nightly
 cache: cargo
 
-post_script:
+after_script:
     - cargo install cargo-audit
     - cargo audit
