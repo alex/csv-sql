@@ -4,3 +4,7 @@ rust:
     - beta
     - nightly
 cache: cargo
+
+post_script:
+    - cargo install cargo-audit
+    - cargo audit
