@@ -147,6 +147,8 @@ fn main() {
         "order",
         "where",
         "count",
+        "limit",
+        "offset",
     ].iter()
         .map(|s| s.to_string())
         .collect::<Vec<String>>();
