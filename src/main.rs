@@ -3,10 +3,11 @@ extern crate csv;
 extern crate lazy_static;
 extern crate prettytable;
 extern crate regex;
+extern crate rusqlite;
 extern crate rustyline;
-extern crate sqlite3;
 
 use std::env;
+use std::error::Error;
 
 
 fn _normalize_col(col: &String) -> String {
@@ -21,25 +22,24 @@ fn _normalize_col(col: &String) -> String {
         .replace("?", "");
 }
 
-fn _create_table(db: &mut sqlite3::DatabaseConnection, table_name: &str, cols: &Vec<String>) {
+fn _create_table(db: &mut rusqlite::Connection, table_name: &str, cols: &Vec<String>) {
     let create_columns = cols.iter()
         .map(|c| format!("{} varchar", c))
         .collect::<Vec<String>>()
         .join(", ");
-    db.exec(&format!("CREATE TABLE {} ({})", table_name, create_columns))
+    db.execute(&format!("CREATE TABLE {} ({})", table_name, create_columns), &[])
         .unwrap();
 }
 
 fn _insert_row(
-    db: &mut sqlite3::DatabaseConnection,
+    db: &mut rusqlite::Connection,
     table_name: &str,
     row: Vec<String>,
     cols: &Vec<String>,
 ) {
     let placeholders = cols.iter()
-        .enumerate()
-        .map(|(idx, _)| format!("${}", idx + 1))
-        .collect::<Vec<String>>()
+        .map(|_| "?")
+        .collect::<Vec<_>>()
         .join(", ");
     let mut stmt = db.prepare(&format!(
         "INSERT INTO {} VALUES ({})",
@@ -47,15 +47,13 @@ fn _insert_row(
         placeholders
     )).unwrap();
 
-    for (idx, value) in row.iter().enumerate() {
-        stmt.bind_text((idx + 1) as sqlite3::ParamIx, value)
-            .unwrap();
-    }
-    assert!(stmt.execute().step().unwrap().is_none());
+    let params = row.iter().map(|p| p as &rusqlite::types::ToSql).collect::<Vec<&rusqlite::types::ToSql>>();
+    let res = stmt.execute(&params);
+    assert!(res.is_ok());
 }
 
 fn _load_table_from_path(
-    db: &mut sqlite3::DatabaseConnection,
+    db: &mut rusqlite::Connection,
     table_name: &str,
     path: String,
 ) -> Vec<String> {
@@ -84,23 +82,39 @@ fn _load_table_from_path(
     return normalized_cols;
 }
 
-fn _print_table(conn: &mut sqlite3::DatabaseConnection, line: &str) {
+struct FromAnySqlType {
+    value: String,
+}
+
+impl rusqlite::types::FromSql for FromAnySqlType {
+    fn column_result(value: rusqlite::types::ValueRef) -> Result<FromAnySqlType, rusqlite::types::FromSqlError> {
+        let result = match value {
+            rusqlite::types::ValueRef::Null => "null".to_string(),
+            rusqlite::types::ValueRef::Integer(v) => v.to_string(),
+            rusqlite::types::ValueRef::Real(v) => v.to_string(),
+            rusqlite::types::ValueRef::Text(v) => v.to_string(),
+            rusqlite::types::ValueRef::Blob(v) => String::from_utf8(v.to_vec()).unwrap()
+        };
+        Ok(FromAnySqlType{value: result})
+    }
+}
+
+fn _print_table(conn: &mut rusqlite::Connection, line: &str) {
     let mut table = prettytable::Table::new();
     table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
     let mut stmt = match conn.prepare(&line) {
         Ok(stmt) => stmt,
         Err(e) => {
-            println!("{}", e.detail.unwrap());
+            println!("{}", e.description());
             return;
         }
     };
-    let mut results = stmt.execute();
-    while let Some(r) = results.step().unwrap() {
+    let mut results = stmt.query(&[]).unwrap();
+    while let Some(Ok(r)) = results.next() {
         let mut row = prettytable::row::Row::new(vec![]);
         for i in 0..r.column_count() {
-            row.add_cell(prettytable::cell::Cell::new(
-                &r.column_text(i).unwrap_or("".to_string()),
-            ));
+            let cell: FromAnySqlType = r.get(i);
+            row.add_cell(prettytable::cell::Cell::new(&cell.value));
         }
         table.add_row(row);
     }
@@ -136,7 +150,7 @@ impl rustyline::completion::Completer for SimpleWordCompleter {
 fn main() {
     let mut paths = env::args().skip(1);
 
-    let mut conn = sqlite3::DatabaseConnection::in_memory().unwrap();
+    let mut conn = rusqlite::Connection::open_in_memory().unwrap();
 
     let mut base_words = vec![
         "distinct",
