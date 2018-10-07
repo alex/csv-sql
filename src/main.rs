@@ -111,10 +111,10 @@ fn _print_table(conn: &mut rusqlite::Connection, line: &str) {
     };
     let mut results = stmt.query(&[]).unwrap();
     while let Some(Ok(r)) = results.next() {
-        let mut row = prettytable::row::Row::new(vec![]);
+        let mut row = prettytable::Row::new(vec![]);
         for i in 0..r.column_count() {
             let cell: FromAnySqlType = r.get(i);
-            row.add_cell(prettytable::cell::Cell::new(&cell.value));
+            row.add_cell(prettytable::Cell::new(&cell.value));
         }
         table.add_row(row);
     }
