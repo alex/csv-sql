@@ -10,7 +10,7 @@ use std::env;
 use std::error::Error;
 
 
-fn _normalize_col(col: &String) -> String {
+fn _normalize_col(col: &str) -> String {
     lazy_static! {
         static ref RE: regex::Regex = regex::Regex::new(r"\(.*?\)").unwrap();
     }
@@ -58,7 +58,7 @@ fn _load_table_from_path(
     path: String,
 ) -> Vec<String> {
     let mut num_rows = 0;
-    let mut reader = csv::Reader::from_file(path).unwrap();
+    let mut reader = csv::Reader::from_path(path).unwrap();
 
     let normalized_cols = reader
         .headers()
@@ -68,8 +68,8 @@ fn _load_table_from_path(
         .collect();
     _create_table(db, table_name, &normalized_cols);
 
-    for row in reader.decode() {
-        _insert_row(db, table_name, row.unwrap(), &normalized_cols);
+    for row in reader.records() {
+        _insert_row(db, table_name, row.unwrap().iter().map(|s| s.to_string()).collect(), &normalized_cols);
         num_rows += 1;
     }
 
