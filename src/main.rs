@@ -126,17 +126,29 @@ struct SimpleWordCompleter {
 }
 
 
-static BREAK_CHARS: [char; 4] = [' ', '(', ')', ','];
+static BREAK_CHARS: [u8; 4] = [b' ', b'(', b')', b','];
 impl SimpleWordCompleter {
     fn new(words: Vec<String>) -> SimpleWordCompleter {
         return SimpleWordCompleter { words: words };
     }
 }
 
+impl rustyline::Helper for SimpleWordCompleter {}
+
+impl rustyline::hint::Hinter for SimpleWordCompleter {
+    fn hint(&self, _line: &str, _pos: usize) -> Option<String> {
+        return None;
+    }
+}
+
+impl rustyline::highlight::Highlighter for SimpleWordCompleter {}
+
 impl rustyline::completion::Completer for SimpleWordCompleter {
+    type Candidate = String;
+
     fn complete(&self, line: &str, pos: usize) -> rustyline::Result<(usize, Vec<String>)> {
         let (start, word) =
-            rustyline::completion::extract_word(line, pos, &BREAK_CHARS.iter().cloned().collect());
+            rustyline::completion::extract_word(line, pos, None, &BREAK_CHARS);
 
         let matches = self.words
             .iter()
@@ -179,14 +191,14 @@ fn main() {
 
     let completer = SimpleWordCompleter::new(base_words);
     let mut rl = rustyline::Editor::new();
-    rl.set_completer(Some(completer));
+    rl.set_helper(Some(completer));
     loop {
         match rl.readline("> ") {
             Ok(line) => {
                 if line.trim().is_empty() {
                     continue;
                 }
-                rl.add_history_entry(&line);
+                rl.add_history_entry(line.clone());
                 _print_table(&mut conn, &line);
             }
             Err(rustyline::error::ReadlineError::Interrupted) => {
