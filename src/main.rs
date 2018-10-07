@@ -9,12 +9,12 @@ extern crate rustyline;
 use std::env;
 use std::error::Error;
 
-
 fn _normalize_col(col: &str) -> String {
     lazy_static! {
         static ref RE: regex::Regex = regex::Regex::new(r"\(.*?\)").unwrap();
     }
-    return RE.replace_all(col, "")
+    return RE
+        .replace_all(col, "")
         .to_lowercase()
         .trim()
         .replace(" ", "_")
@@ -23,12 +23,15 @@ fn _normalize_col(col: &str) -> String {
 }
 
 fn _create_table(db: &mut rusqlite::Connection, table_name: &str, cols: &Vec<String>) {
-    let create_columns = cols.iter()
+    let create_columns = cols
+        .iter()
         .map(|c| format!("{} varchar", c))
         .collect::<Vec<String>>()
         .join(", ");
-    db.execute(&format!("CREATE TABLE {} ({})", table_name, create_columns), &[])
-        .unwrap();
+    db.execute(
+        &format!("CREATE TABLE {} ({})", table_name, create_columns),
+        &[],
+    ).unwrap();
 }
 
 fn _insert_row(
@@ -37,17 +40,17 @@ fn _insert_row(
     row: Vec<String>,
     cols: &Vec<String>,
 ) {
-    let placeholders = cols.iter()
-        .map(|_| "?")
-        .collect::<Vec<_>>()
-        .join(", ");
-    let mut stmt = db.prepare(&format!(
-        "INSERT INTO {} VALUES ({})",
-        table_name,
-        placeholders
-    )).unwrap();
+    let placeholders = cols.iter().map(|_| "?").collect::<Vec<_>>().join(", ");
+    let mut stmt = db
+        .prepare(&format!(
+            "INSERT INTO {} VALUES ({})",
+            table_name, placeholders
+        )).unwrap();
 
-    let params = row.iter().map(|p| p as &rusqlite::types::ToSql).collect::<Vec<&rusqlite::types::ToSql>>();
+    let params = row
+        .iter()
+        .map(|p| p as &rusqlite::types::ToSql)
+        .collect::<Vec<&rusqlite::types::ToSql>>();
     let res = stmt.execute(&params);
     assert!(res.is_ok());
 }
@@ -69,7 +72,12 @@ fn _load_table_from_path(
     _create_table(db, table_name, &normalized_cols);
 
     for row in reader.records() {
-        _insert_row(db, table_name, row.unwrap().iter().map(|s| s.to_string()).collect(), &normalized_cols);
+        _insert_row(
+            db,
+            table_name,
+            row.unwrap().iter().map(|s| s.to_string()).collect(),
+            &normalized_cols,
+        );
         num_rows += 1;
     }
 
@@ -87,15 +95,17 @@ struct FromAnySqlType {
 }
 
 impl rusqlite::types::FromSql for FromAnySqlType {
-    fn column_result(value: rusqlite::types::ValueRef) -> Result<FromAnySqlType, rusqlite::types::FromSqlError> {
+    fn column_result(
+        value: rusqlite::types::ValueRef,
+    ) -> Result<FromAnySqlType, rusqlite::types::FromSqlError> {
         let result = match value {
             rusqlite::types::ValueRef::Null => "null".to_string(),
             rusqlite::types::ValueRef::Integer(v) => v.to_string(),
             rusqlite::types::ValueRef::Real(v) => v.to_string(),
             rusqlite::types::ValueRef::Text(v) => v.to_string(),
-            rusqlite::types::ValueRef::Blob(v) => String::from_utf8(v.to_vec()).unwrap()
+            rusqlite::types::ValueRef::Blob(v) => String::from_utf8(v.to_vec()).unwrap(),
         };
-        Ok(FromAnySqlType{value: result})
+        Ok(FromAnySqlType { value: result })
     }
 }
 
@@ -125,7 +135,6 @@ struct SimpleWordCompleter {
     words: Vec<String>,
 }
 
-
 static BREAK_CHARS: [u8; 4] = [b' ', b'(', b')', b','];
 impl SimpleWordCompleter {
     fn new(words: Vec<String>) -> SimpleWordCompleter {
@@ -147,10 +156,10 @@ impl rustyline::completion::Completer for SimpleWordCompleter {
     type Candidate = String;
 
     fn complete(&self, line: &str, pos: usize) -> rustyline::Result<(usize, Vec<String>)> {
-        let (start, word) =
-            rustyline::completion::extract_word(line, pos, None, &BREAK_CHARS);
+        let (start, word) = rustyline::completion::extract_word(line, pos, None, &BREAK_CHARS);
 
-        let matches = self.words
+        let matches = self
+            .words
             .iter()
             .filter(|w| w.starts_with(word))
             .cloned()
@@ -165,19 +174,10 @@ fn main() {
     let mut conn = rusqlite::Connection::open_in_memory().unwrap();
 
     let mut base_words = vec![
-        "distinct",
-        "select",
-        "from",
-        "group",
-        "by",
-        "order",
-        "where",
-        "count",
-        "limit",
-        "offset",
+        "distinct", "select", "from", "group", "by", "order", "where", "count", "limit", "offset",
     ].iter()
-        .map(|s| s.to_string())
-        .collect::<Vec<String>>();
+    .map(|s| s.to_string())
+    .collect::<Vec<String>>();
 
     if paths.len() == 1 {
         let mut col_names = _load_table_from_path(&mut conn, "t", paths.next().unwrap());
