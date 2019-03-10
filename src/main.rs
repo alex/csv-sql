@@ -120,10 +120,10 @@ fn _print_table(conn: &mut rusqlite::Connection, line: &str) {
         }
     };
     let mut results = stmt.query(&[] as &[&rusqlite::types::ToSql]).unwrap();
-    while let Some(Ok(r)) = results.next() {
+    while let Ok(Some(r)) = results.next() {
         let mut row = prettytable::Row::new(vec![]);
         for i in 0..r.column_count() {
-            let cell: FromAnySqlType = r.get(i);
+            let cell: FromAnySqlType = r.get(i).unwrap();
             row.add_cell(prettytable::Cell::new(&cell.value));
         }
         table.add_row(row);
