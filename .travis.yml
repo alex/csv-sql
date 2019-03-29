@@ -5,6 +5,10 @@ rust:
     - nightly
 cache: cargo
 
+branches:
+    only:
+        - master
+
 after_script:
     - cargo install cargo-audit
     - cargo audit
