@@ -31,27 +31,14 @@ fn _create_table(db: &mut rusqlite::Connection, table_name: &str, cols: &Vec<Str
     db.execute(
         &format!("CREATE TABLE {} ({})", table_name, create_columns),
         &[] as &[&rusqlite::types::ToSql],
-    ).unwrap();
+    )
+    .unwrap();
 }
 
-fn _insert_row(
-    db: &mut rusqlite::Connection,
-    table_name: &str,
-    row: Vec<String>,
-    cols: &Vec<String>,
-) {
-    let placeholders = cols.iter().map(|_| "?").collect::<Vec<_>>().join(", ");
-    let mut stmt = db
-        .prepare(&format!(
-            "INSERT INTO {} VALUES ({})",
-            table_name, placeholders
-        )).unwrap();
+fn _insert_row(db: &mut rusqlite::Connection, row: csv::StringRecord, insert_query: &str) {
+    let mut stmt = db.prepare(insert_query).unwrap();
 
-    let params = row
-        .iter()
-        .map(|p| p as &rusqlite::types::ToSql)
-        .collect::<Vec<&rusqlite::types::ToSql>>();
-    let res = stmt.execute(&params);
+    let res = stmt.execute(&row);
     assert!(res.is_ok());
 }
 
@@ -71,13 +58,17 @@ fn _load_table_from_path(
         .collect();
     _create_table(db, table_name, &normalized_cols);
 
+    let insert_query = format!(
+        "INSERT INTO {} VALUES ({})",
+        table_name,
+        normalized_cols
+            .iter()
+            .map(|_| "?")
+            .collect::<Vec<_>>()
+            .join(", ")
+    );
     for row in reader.records() {
-        _insert_row(
-            db,
-            table_name,
-            row.unwrap().iter().map(|s| s.to_string()).collect(),
-            &normalized_cols,
-        );
+        _insert_row(db, row.unwrap(), &insert_query);
         num_rows += 1;
     }
 
@@ -175,7 +166,8 @@ fn main() {
 
     let mut base_words = vec![
         "distinct", "select", "from", "group", "by", "order", "where", "count", "limit", "offset",
-    ].iter()
+    ]
+    .iter()
     .map(|s| s.to_string())
     .collect::<Vec<String>>();
 
