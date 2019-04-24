@@ -162,7 +162,7 @@ impl SimpleWordCompleter {
 impl rustyline::Helper for SimpleWordCompleter {}
 
 impl rustyline::hint::Hinter for SimpleWordCompleter {
-    fn hint(&self, _line: &str, _pos: usize) -> Option<String> {
+    fn hint(&self, _line: &str, _pos: usize, _ctx: &rustyline::Context) -> Option<String> {
         None
     }
 }
@@ -172,7 +172,12 @@ impl rustyline::highlight::Highlighter for SimpleWordCompleter {}
 impl rustyline::completion::Completer for SimpleWordCompleter {
     type Candidate = String;
 
-    fn complete(&self, line: &str, pos: usize) -> rustyline::Result<(usize, Vec<String>)> {
+    fn complete(
+        &self,
+        line: &str,
+        pos: usize,
+        _ctx: &rustyline::Context,
+    ) -> rustyline::Result<(usize, Vec<String>)> {
         let (start, word) = rustyline::completion::extract_word(line, pos, None, &BREAK_CHARS);
 
         let matches = self
