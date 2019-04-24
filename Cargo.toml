@@ -5,6 +5,7 @@ authors = ["Alex Gaynor <alex.gaynor@gmail.com>"]
 
 [dependencies]
 csv = "*"
+indicatif = "*"
 lazy_static = "*"
 prettytable-rs = "*"
 regex = "*"

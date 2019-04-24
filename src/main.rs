@@ -1,4 +1,5 @@
 extern crate csv;
+extern crate indicatif;
 #[macro_use]
 extern crate lazy_static;
 extern crate prettytable;
@@ -8,6 +9,7 @@ extern crate rustyline;
 
 use std::env;
 use std::error::Error;
+use std::fs::File;
 
 fn _normalize_col(col: &str) -> String {
     lazy_static! {
@@ -49,7 +51,9 @@ fn _load_table_from_path(
     path: String,
 ) -> Vec<String> {
     let mut num_rows = 0;
-    let mut reader = csv::Reader::from_path(path).unwrap();
+    let f = File::open(path).unwrap();
+    let file_size = f.metadata().unwrap().len();
+    let mut reader = csv::Reader::from_reader(f);
 
     let normalized_cols =
         reader
@@ -78,10 +82,21 @@ fn _load_table_from_path(
             .collect::<Vec<_>>()
             .join(", ")
     );
-    for row in reader.records() {
+    let pb = indicatif::ProgressBar::new(file_size);
+    pb.set_style(
+        indicatif::ProgressStyle::default_bar()
+            .template("[{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})")
+            .progress_chars("#>-"),
+    );
+    let mut records = reader.records();
+    while let Some(row) = records.next() {
         _insert_row(db, row.unwrap(), &insert_query);
         num_rows += 1;
+        if num_rows % 10000 == 0 {
+            pb.set_position(records.reader().position().byte())
+        }
     }
+    pb.finish();
 
     println!(
         "Loaded {} rows into {}({})",
