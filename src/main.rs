@@ -18,6 +18,8 @@ fn _normalize_col(col: &str) -> String {
         .trim()
         .replace(" ", "_")
         .replace(".", "_")
+        .replace("-", "_")
+        .replace("/", "_")
         .replace("?", "")
 }
 
