@@ -50,12 +50,22 @@ fn _load_table_from_path(
     let mut num_rows = 0;
     let mut reader = csv::Reader::from_path(path).unwrap();
 
-    let normalized_cols = reader
-        .headers()
-        .unwrap()
-        .iter()
-        .map(_normalize_col)
-        .collect();
+    let normalized_cols =
+        reader
+            .headers()
+            .unwrap()
+            .iter()
+            .map(_normalize_col)
+            .fold(vec![], |mut v, orig_col| {
+                let mut col = orig_col.clone();
+                let mut i = 1;
+                while v.contains(&col) {
+                    col = format!("{}_{}", orig_col, i);
+                    i += 1
+                }
+                v.push(col);
+                return v;
+            });
     _create_table(db, table_name, &normalized_cols);
 
     let insert_query = format!(
