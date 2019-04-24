@@ -13,16 +13,15 @@ fn _normalize_col(col: &str) -> String {
     lazy_static! {
         static ref RE: regex::Regex = regex::Regex::new(r"\(.*?\)").unwrap();
     }
-    return RE
-        .replace_all(col, "")
+    RE.replace_all(col, "")
         .to_lowercase()
         .trim()
         .replace(" ", "_")
         .replace(".", "_")
-        .replace("?", "");
+        .replace("?", "")
 }
 
-fn _create_table(db: &mut rusqlite::Connection, table_name: &str, cols: &Vec<String>) {
+fn _create_table(db: &mut rusqlite::Connection, table_name: &str, cols: &[String]) {
     let create_columns = cols
         .iter()
         .map(|c| format!("{} varchar", c))
@@ -64,7 +63,7 @@ fn _load_table_from_path(
                     i += 1
                 }
                 v.push(col);
-                return v;
+                v
             });
     _create_table(db, table_name, &normalized_cols);
 
@@ -88,7 +87,7 @@ fn _load_table_from_path(
         table_name,
         normalized_cols.join(", "),
     );
-    return normalized_cols;
+    normalized_cols
 }
 
 struct FromAnySqlType {
@@ -139,7 +138,7 @@ struct SimpleWordCompleter {
 static BREAK_CHARS: [u8; 4] = [b' ', b'(', b')', b','];
 impl SimpleWordCompleter {
     fn new(words: Vec<String>) -> SimpleWordCompleter {
-        return SimpleWordCompleter { words: words };
+        SimpleWordCompleter { words }
     }
 }
 
@@ -147,7 +146,7 @@ impl rustyline::Helper for SimpleWordCompleter {}
 
 impl rustyline::hint::Hinter for SimpleWordCompleter {
     fn hint(&self, _line: &str, _pos: usize) -> Option<String> {
-        return None;
+        None
     }
 }
 
@@ -165,7 +164,7 @@ impl rustyline::completion::Completer for SimpleWordCompleter {
             .filter(|w| w.starts_with(word))
             .cloned()
             .collect();
-        return Ok((start, matches));
+        Ok((start, matches))
     }
 }
 
