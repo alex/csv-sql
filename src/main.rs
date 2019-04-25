@@ -134,6 +134,13 @@ fn _print_table(conn: &mut rusqlite::Connection, line: &str) {
             return;
         }
     };
+
+    let mut title_row = prettytable::Row::new(vec![]);
+    for col in stmt.column_names() {
+        title_row.add_cell(prettytable::Cell::new(col));
+    }
+    table.set_titles(title_row);
+
     let mut results = stmt.query(&[] as &[&rusqlite::types::ToSql]).unwrap();
     while let Ok(Some(r)) = results.next() {
         let mut row = prettytable::Row::new(vec![]);
