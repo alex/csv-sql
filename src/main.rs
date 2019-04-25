@@ -1,18 +1,16 @@
-extern crate csv;
-extern crate indicatif;
-#[macro_use]
-extern crate lazy_static;
-extern crate prettytable;
-extern crate regex;
-extern crate rusqlite;
-extern crate rustyline;
-
+use csv;
+use indicatif;
+use lazy_static;
+use prettytable;
+use regex;
+use rusqlite;
+use rustyline;
 use std::env;
 use std::error::Error;
 use std::fs::File;
 
 fn _normalize_col(col: &str) -> String {
-    lazy_static! {
+    lazy_static::lazy_static! {
         static ref RE: regex::Regex = regex::Regex::new(r"\(.*?\)").unwrap();
     }
     RE.replace_all(col, "")
