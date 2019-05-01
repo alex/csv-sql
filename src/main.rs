@@ -36,8 +36,8 @@ fn _create_table(db: &mut rusqlite::Connection, table_name: &str, cols: &[String
     .unwrap();
 }
 
-fn _insert_row(db: &mut rusqlite::Connection, row: csv::StringRecord, insert_query: &str) {
-    let mut stmt = db.prepare(insert_query).unwrap();
+fn _insert_row(tx: &mut rusqlite::Transaction, row: csv::StringRecord, insert_query: &str) {
+    let mut stmt = tx.prepare(insert_query).unwrap();
 
     let res = stmt.execute(&row);
     assert!(res.is_ok());
@@ -87,8 +87,9 @@ fn _load_table_from_path(
             .progress_chars("#>-"),
     );
     let mut records = reader.records();
+    let mut tx = db.transaction().unwrap();
     while let Some(row) = records.next() {
-        _insert_row(db, row.unwrap(), &insert_query);
+        _insert_row(&mut tx, row.unwrap(), &insert_query);
         num_rows += 1;
         if num_rows % 10000 == 0 {
             pb.set_position(records.reader().position().byte())
