@@ -84,8 +84,7 @@ fn _load_table_from_path(
     {
         let mut stmt = tx.prepare(&insert_query).unwrap();
         while let Some(row) = records.next() {
-            let res = stmt.execute(&row.unwrap());
-            assert!(res.is_ok());
+            stmt.execute(&row.unwrap()).unwrap();
 
             num_rows += 1;
             if num_rows % 10000 == 0 {
