@@ -31,7 +31,7 @@ fn _create_table(db: &mut rusqlite::Connection, table_name: &str, cols: &[String
         .join(", ");
     db.execute(
         &format!("CREATE TABLE {} ({})", table_name, create_columns),
-        &[] as &[&rusqlite::types::ToSql],
+        &[] as &[&dyn rusqlite::types::ToSql],
     )
     .unwrap();
 }
@@ -140,7 +140,7 @@ fn _print_table(conn: &mut rusqlite::Connection, line: &str) {
     }
     table.set_titles(title_row);
 
-    let mut results = stmt.query(&[] as &[&rusqlite::types::ToSql]).unwrap();
+    let mut results = stmt.query(&[] as &[&dyn rusqlite::types::ToSql]).unwrap();
     while let Ok(Some(r)) = results.next() {
         let mut row = prettytable::Row::new(vec![]);
         for i in 0..r.column_count() {
