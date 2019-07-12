@@ -225,8 +225,8 @@ fn main() {
                 if line.trim().is_empty() {
                     continue;
                 }
-                rl.add_history_entry(line.clone());
                 _print_table(&mut conn, &line);
+                rl.add_history_entry(line);
             }
             Err(rustyline::error::ReadlineError::Interrupted) => {
                 println!("Interrupted");
