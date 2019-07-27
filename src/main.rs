@@ -116,8 +116,9 @@ impl rusqlite::types::FromSql for FromAnySqlType {
             rusqlite::types::ValueRef::Null => "null".to_string(),
             rusqlite::types::ValueRef::Integer(v) => v.to_string(),
             rusqlite::types::ValueRef::Real(v) => v.to_string(),
-            rusqlite::types::ValueRef::Text(v) => v.to_string(),
-            rusqlite::types::ValueRef::Blob(v) => String::from_utf8(v.to_vec()).unwrap(),
+            rusqlite::types::ValueRef::Blob(v) | rusqlite::types::ValueRef::Text(v) => {
+                String::from_utf8(v.to_vec()).unwrap()
+            }
         };
         Ok(FromAnySqlType { value: result })
     }
