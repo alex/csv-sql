@@ -22,3 +22,11 @@ You can also specify multiple files:
     Loaded 12 rows into t1(some, schema)
     Loaded 74 rows into t2(some, other, schema)
     >
+
+If you'd like to export the results of a query to a CSV file:
+
+.. code-block:: console
+
+    $ cargo run file.csv
+    Loaded 3162 rows into t(domain, base_domain, agency, sslv2)
+    > .export(results.csv) SELECT COUNT(*) from t;

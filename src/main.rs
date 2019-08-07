@@ -124,17 +124,12 @@ impl rusqlite::types::FromSql for FromAnySqlType {
     }
 }
 
-fn _print_table(conn: &mut rusqlite::Connection, line: &str) {
-    let mut table = prettytable::Table::new();
-    table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
-    let mut stmt = match conn.prepare(&line) {
-        Ok(stmt) => stmt,
-        Err(e) => {
-            println!("{}", e.description());
-            return;
-        }
-    };
+fn _handle_query(conn: &mut rusqlite::Connection, line: &str) -> Result<(), String> {
+    let mut stmt = conn
+        .prepare(&line)
+        .map_err(|e| e.description().to_owned())?;
 
+    let mut table = prettytable::Table::new();
     let mut title_row = prettytable::Row::new(vec![]);
     for col in stmt.column_names() {
         title_row.add_cell(prettytable::Cell::new(col));
@@ -142,6 +137,7 @@ fn _print_table(conn: &mut rusqlite::Connection, line: &str) {
     table.set_titles(title_row);
 
     let mut results = stmt.query(&[] as &[&dyn rusqlite::types::ToSql]).unwrap();
+    table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
     while let Ok(Some(r)) = results.next() {
         let mut row = prettytable::Row::new(vec![]);
         for i in 0..r.column_count() {
@@ -151,6 +147,46 @@ fn _print_table(conn: &mut rusqlite::Connection, line: &str) {
         table.add_row(row);
     }
     table.printstd();
+    return Ok(());
+}
+
+fn _handle_export(conn: &mut rusqlite::Connection, line: &str) -> Result<(), String> {
+    lazy_static::lazy_static! {
+        static ref RE: regex::Regex = regex::Regex::new(r"^\.export\(([\w_\-\.]+)\) (.*)").unwrap();
+    }
+    let caps = RE.captures(line).unwrap();
+    let destination_path = &caps[1];
+    let query = &caps[2];
+
+    let mut stmt = conn
+        .prepare(&query)
+        .map_err(|e| e.description().to_owned())?;
+
+    let mut writer = csv::Writer::from_path(destination_path).unwrap();
+    writer.write_record(stmt.column_names()).unwrap();
+
+    let mut results = stmt.query(&[] as &[&dyn rusqlite::types::ToSql]).unwrap();
+    while let Ok(Some(r)) = results.next() {
+        writer
+            .write_record((0..r.column_count()).map(|i| {
+                let cell: FromAnySqlType = r.get(i).unwrap();
+                cell.value
+            }))
+            .unwrap();
+    }
+
+    return Ok(());
+}
+
+fn _process_query(conn: &mut rusqlite::Connection, line: &str) {
+    let result = if line.starts_with(".export") {
+        _handle_export(conn, line)
+    } else {
+        _handle_query(conn, line)
+    };
+    if let Err(e) = result {
+        println!("{}", e);
+    }
 }
 
 struct SimpleWordCompleter {
@@ -226,7 +262,7 @@ fn main() {
                 if line.trim().is_empty() {
                     continue;
                 }
-                _print_table(&mut conn, &line);
+                _process_query(&mut conn, &line);
                 rl.add_history_entry(line);
             }
             Err(rustyline::error::ReadlineError::Interrupted) => {
