@@ -152,7 +152,7 @@ fn _handle_query(conn: &mut rusqlite::Connection, line: &str) -> Result<(), Stri
 
 fn _handle_export(conn: &mut rusqlite::Connection, line: &str) -> Result<(), String> {
     lazy_static::lazy_static! {
-        static ref RE: regex::Regex = regex::Regex::new(r"^\.export\(([\w_\-\.]+)\) (.*)").unwrap();
+        static ref RE: regex::Regex = regex::Regex::new(r"^\.export\(([\w_\-\./]+)\) (.*)").unwrap();
     }
     let caps = RE
         .captures(line)
@@ -240,6 +240,7 @@ fn main() {
 
     let mut base_words = vec![
         "distinct", "select", "from", "group", "by", "order", "where", "count", "limit", "offset",
+        ".export",
     ]
     .iter()
     .map(|s| s.to_string())
