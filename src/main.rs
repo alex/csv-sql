@@ -238,7 +238,7 @@ fn main() {
 
     let mut conn = rusqlite::Connection::open_in_memory().unwrap();
 
-    let mut base_words = vec![
+    let mut base_words = [
         "distinct", "select", "from", "group", "by", "order", "where", "count", "limit", "offset",
         ".export",
     ]
