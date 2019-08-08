@@ -154,7 +154,9 @@ fn _handle_export(conn: &mut rusqlite::Connection, line: &str) -> Result<(), Str
     lazy_static::lazy_static! {
         static ref RE: regex::Regex = regex::Regex::new(r"^\.export\(([\w_\-\.]+)\) (.*)").unwrap();
     }
-    let caps = RE.captures(line).unwrap();
+    let caps = RE
+        .captures(line)
+        .ok_or_else(|| "Must match `.export(file-name) SQL`".to_owned())?;
     let destination_path = &caps[1];
     let query = &caps[2];
 
