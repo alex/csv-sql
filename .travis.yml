@@ -8,6 +8,13 @@ branches:
     only:
         - master
 
-after_script:
-    - cargo install cargo-audit
-    - cargo audit
+before_script:
+  - rustup component add rustfmt
+  - rustup component add clippy-preview
+  - cargo install --force cargo-audit
+
+script:
+  - RUSTFLAGS=-Dwarnings cargo build
+  - cargo clippy --all-targets -- -D warnings
+  - cargo fmt --all -- --check
+  - cargo audit
