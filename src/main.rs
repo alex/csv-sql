@@ -147,7 +147,7 @@ fn _handle_query(conn: &mut rusqlite::Connection, line: &str) -> Result<(), Stri
         table.add_row(row);
     }
     table.printstd();
-    return Ok(());
+    Ok(())
 }
 
 fn _handle_export(conn: &mut rusqlite::Connection, line: &str) -> Result<(), String> {
@@ -177,7 +177,7 @@ fn _handle_export(conn: &mut rusqlite::Connection, line: &str) -> Result<(), Str
             .unwrap();
     }
 
-    return Ok(());
+    Ok(())
 }
 
 fn _process_query(conn: &mut rusqlite::Connection, line: &str) {
