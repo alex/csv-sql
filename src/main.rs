@@ -110,7 +110,7 @@ struct FromAnySqlType {
 
 impl rusqlite::types::FromSql for FromAnySqlType {
     fn column_result(
-        value: rusqlite::types::ValueRef,
+        value: rusqlite::types::ValueRef<'_>,
     ) -> Result<FromAnySqlType, rusqlite::types::FromSqlError> {
         let result = match value {
             rusqlite::types::ValueRef::Null => "null".to_string(),
@@ -205,7 +205,7 @@ impl SimpleWordCompleter {
 impl rustyline::Helper for SimpleWordCompleter {}
 
 impl rustyline::hint::Hinter for SimpleWordCompleter {
-    fn hint(&self, _line: &str, _pos: usize, _ctx: &rustyline::Context) -> Option<String> {
+    fn hint(&self, _line: &str, _pos: usize, _ctx: &rustyline::Context<'_>) -> Option<String> {
         None
     }
 }
@@ -219,7 +219,7 @@ impl rustyline::completion::Completer for SimpleWordCompleter {
         &self,
         line: &str,
         pos: usize,
-        _ctx: &rustyline::Context,
+        _ctx: &rustyline::Context<'_>,
     ) -> rustyline::Result<(usize, Vec<String>)> {
         let (start, word) = rustyline::completion::extract_word(line, pos, None, &BREAK_CHARS);
 
