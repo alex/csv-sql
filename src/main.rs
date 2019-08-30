@@ -124,10 +124,15 @@ impl rusqlite::types::FromSql for FromAnySqlType {
     }
 }
 
+fn _prepare_query<'a>(
+    conn: &'a mut rusqlite::Connection,
+    query: &str,
+) -> Result<rusqlite::Statement<'a>, String> {
+    return conn.prepare(&query).map_err(|e| e.description().to_owned());
+}
+
 fn _handle_query(conn: &mut rusqlite::Connection, line: &str) -> Result<(), String> {
-    let mut stmt = conn
-        .prepare(&line)
-        .map_err(|e| e.description().to_owned())?;
+    let mut stmt = _prepare_query(conn, line)?;
 
     let mut table = prettytable::Table::new();
     let mut title_row = prettytable::Row::new(vec![]);
@@ -135,9 +140,9 @@ fn _handle_query(conn: &mut rusqlite::Connection, line: &str) -> Result<(), Stri
         title_row.add_cell(prettytable::Cell::new(col));
     }
     table.set_titles(title_row);
+    table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
 
     let mut results = stmt.query(&[] as &[&dyn rusqlite::types::ToSql]).unwrap();
-    table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
     while let Ok(Some(r)) = results.next() {
         let mut row = prettytable::Row::new(vec![]);
         for i in 0..r.column_count() {
@@ -160,9 +165,7 @@ fn _handle_export(conn: &mut rusqlite::Connection, line: &str) -> Result<(), Str
     let destination_path = &caps[1];
     let query = &caps[2];
 
-    let mut stmt = conn
-        .prepare(&query)
-        .map_err(|e| e.description().to_owned())?;
+    let mut stmt = _prepare_query(conn, query)?;
 
     let mut writer = csv::Writer::from_path(destination_path).unwrap();
     writer.write_record(stmt.column_names()).unwrap();
