@@ -40,9 +40,9 @@ fn _load_table_from_path(
     db: &mut rusqlite::Connection,
     table_name: &str,
     path: String,
-) -> Vec<String> {
+) -> Result<Vec<String>, Box<dyn std::error::Error>> {
     let mut num_rows = 0;
-    let f = File::open(path).unwrap();
+    let f = File::open(path)?;
     let file_size = f.metadata().unwrap().len();
     let mut reader = csv::Reader::from_reader(f);
 
@@ -101,7 +101,7 @@ fn _load_table_from_path(
         table_name,
         normalized_cols.join(", "),
     );
-    normalized_cols
+    Ok(normalized_cols)
 }
 
 struct FromAnySqlType {
@@ -236,7 +236,7 @@ impl rustyline::completion::Completer for SimpleWordCompleter {
     }
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut paths = env::args().skip(1);
 
     let mut conn = rusqlite::Connection::open_in_memory().unwrap();
@@ -250,11 +250,11 @@ fn main() {
     .collect::<Vec<String>>();
 
     if paths.len() == 1 {
-        let mut col_names = _load_table_from_path(&mut conn, "t", paths.next().unwrap());
+        let mut col_names = _load_table_from_path(&mut conn, "t", paths.next().unwrap())?;
         base_words.append(&mut col_names);
     } else {
         for (idx, path) in paths.enumerate() {
-            let mut col_names = _load_table_from_path(&mut conn, &format!("t{}", idx + 1), path);
+            let mut col_names = _load_table_from_path(&mut conn, &format!("t{}", idx + 1), path)?;
             base_words.append(&mut col_names);
         }
     }
@@ -284,4 +284,6 @@ fn main() {
             }
         }
     }
+
+    Ok(())
 }
