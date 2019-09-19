@@ -48,8 +48,7 @@ fn _load_table_from_path(
 
     let normalized_cols =
         reader
-            .headers()
-            .unwrap()
+            .headers()?
             .iter()
             .map(_normalize_col)
             .fold(vec![], |mut v, orig_col| {
@@ -84,7 +83,7 @@ fn _load_table_from_path(
     {
         let mut stmt = tx.prepare(&insert_query).unwrap();
         while let Some(row) = records.next() {
-            stmt.execute(&row.unwrap()).unwrap();
+            stmt.execute(&row?).unwrap();
 
             num_rows += 1;
             if num_rows % 10000 == 0 {
