@@ -9,8 +9,7 @@ branches:
         - master
 
 before_script:
-  - rustup component add rustfmt
-  - rustup component add clippy-preview
+  - rustup component add rustfmt clippy-preview
   - cargo install --force cargo-audit
 
 script:
