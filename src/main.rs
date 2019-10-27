@@ -245,7 +245,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ".export",
     ]
     .iter()
-    .map(|s| (*s).to_string())
+    .map(|&s| s.to_string())
     .collect::<Vec<String>>();
 
     if paths.len() == 1 {
