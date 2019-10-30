@@ -483,7 +483,7 @@ dependencies = [
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "memchr 2.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "nix 0.14.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "unicode-segmentation 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "unicode-segmentation 1.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "unicode-width 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "utf8parse 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -558,7 +558,7 @@ dependencies = [
 
 [[package]]
 name = "unicode-segmentation"
-version = "1.4.0"
+version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -672,7 +672,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum termios 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "72b620c5ea021d75a735c943269bb07d30c9b77d6ac6b236bc8b5c496ef05625"
 "checksum thread_local 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)" = "c6b53e329000edc2b34dbe8545fd20e55a333362d0a321909685a19bd28c3f1b"
 "checksum time 0.1.42 (registry+https://github.com/rust-lang/crates.io-index)" = "db8dcfca086c1143c9270ac42a2bbd8a7ee477b78ac8e45b19abfb0cbede4b6f"
-"checksum unicode-segmentation 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "dc5415c074426c7c65db13bd647c23d78c0fb2e10dca0b8fb0f40058a59bccdf"
+"checksum unicode-segmentation 1.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "49f5526225fd8b77342d5986ab5f6055552e9c0776193b5b63fd53b46debfad7"
 "checksum unicode-width 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "7007dbd421b92cc6e28410fe7362e2e0a2503394908f417b68ec8d1c364c4e20"
 "checksum unicode-xid 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "826e7639553986605ec5979c7dd957c7895e93eabed50ab2ffa7f6128a75097c"
 "checksum utf8parse 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "8772a4ccbb4e89959023bc5b7cb8623a795caa7092d99f3aa9501b9484d4557d"
