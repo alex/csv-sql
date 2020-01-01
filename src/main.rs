@@ -6,7 +6,6 @@ use regex;
 use rusqlite;
 use rustyline;
 use std::env;
-use std::error::Error;
 use std::fs::File;
 
 fn _normalize_col(col: &str) -> String {
