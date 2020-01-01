@@ -6,7 +6,6 @@ use regex;
 use rusqlite;
 use rustyline;
 use std::env;
-use std::error::Error;
 use std::fs::File;
 
 fn _normalize_col(col: &str) -> String {
@@ -127,7 +126,7 @@ fn _prepare_query<'a>(
     conn: &'a mut rusqlite::Connection,
     query: &str,
 ) -> Result<rusqlite::Statement<'a>, String> {
-    conn.prepare(&query).map_err(|e| e.description().to_owned())
+    conn.prepare(&query).map_err(|e| e.to_string())
 }
 
 fn _handle_query(conn: &mut rusqlite::Connection, line: &str) -> Result<(), String> {
