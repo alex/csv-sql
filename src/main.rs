@@ -213,6 +213,8 @@ impl rustyline::hint::Hinter for SimpleWordCompleter {
 
 impl rustyline::highlight::Highlighter for SimpleWordCompleter {}
 
+impl rustyline::validate::Validator for SimpleWordCompleter {}
+
 impl rustyline::completion::Completer for SimpleWordCompleter {
     type Candidate = String;
 
