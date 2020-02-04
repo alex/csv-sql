@@ -1,10 +1,3 @@
-use csv;
-use indicatif;
-use lazy_static;
-use prettytable;
-use regex;
-use rusqlite;
-use rustyline;
 use std::env;
 use std::fs::File;
 
