@@ -126,24 +126,24 @@ fn _prepare_query<'a>(
 fn _handle_query(conn: &mut rusqlite::Connection, line: &str) -> Result<(), String> {
     let mut stmt = _prepare_query(conn, line)?;
 
-    let mut table = prettytable::Table::new();
-    let mut title_row = prettytable::Row::new(vec![]);
+    let mut table = comfy_table::Table::new();
+    table.load_preset("││──╞═╪╡┆    ┬┴┌┐└┘");
+    let mut title_row = comfy_table::Row::new();
     for col in stmt.column_names() {
-        title_row.add_cell(prettytable::Cell::new(col));
+        title_row.add_cell(comfy_table::Cell::new(col));
     }
-    table.set_titles(title_row);
-    table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
+    table.set_header(title_row);
 
     let mut results = stmt.query(&[] as &[&dyn rusqlite::types::ToSql]).unwrap();
     while let Ok(Some(r)) = results.next() {
-        let mut row = prettytable::Row::new(vec![]);
+        let mut row = comfy_table::Row::new();
         for i in 0..r.column_count() {
             let cell: FromAnySqlType = r.get(i).unwrap();
-            row.add_cell(prettytable::Cell::new(&cell.value));
+            row.add_cell(comfy_table::Cell::new(&cell.value));
         }
         table.add_row(row);
     }
-    table.printstd();
+    println!("{}", table);
     Ok(())
 }
 
