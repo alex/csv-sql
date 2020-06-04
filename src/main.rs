@@ -128,6 +128,7 @@ fn _handle_query(conn: &mut rusqlite::Connection, line: &str) -> Result<(), Stri
 
     let mut table = comfy_table::Table::new();
     table.load_preset("││──╞═╪╡┆    ┬┴┌┐└┘");
+    table.set_content_arrangement(comfy_table::ContentArrangement::Dynamic);
     let mut title_row = comfy_table::Row::new();
     for col in stmt.column_names() {
         title_row.add_cell(comfy_table::Cell::new(col));
