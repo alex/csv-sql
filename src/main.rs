@@ -13,6 +13,7 @@ fn _normalize_col(col: &str) -> String {
         .replace("-", "_")
         .replace("/", "_")
         .replace("?", "")
+        .replace(",", "_")
 }
 
 fn _create_table(db: &mut rusqlite::Connection, table_name: &str, cols: &[String]) {
@@ -73,7 +74,7 @@ fn _load_table_from_path(
     let mut records = reader.records();
     let tx = db.transaction().unwrap();
     {
-        let mut stmt = tx.prepare(&insert_query).unwrap();
+        let mut stmt = tx.prepare(&insert_query).expect("tx.prepare() failed");
         while let Some(row) = records.next() {
             stmt.execute(&row?).unwrap();
 
