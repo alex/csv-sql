@@ -14,6 +14,7 @@ fn _normalize_col(col: &str) -> String {
         .replace("/", "_")
         .replace("?", "")
         .replace(",", "_")
+        .replace("&", "_")
 }
 
 fn _create_table(db: &mut rusqlite::Connection, table_name: &str, cols: &[String]) {
