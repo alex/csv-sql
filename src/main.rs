@@ -1,11 +1,12 @@
 use std::env;
 use std::fs::File;
 
-fn _normalize_col(col: &str) -> String {
+fn normalize_col(col: &str) -> String {
     lazy_static::lazy_static! {
         static ref RE: regex::Regex = regex::Regex::new(r"\(.*?\)").unwrap();
     }
-    RE.replace_all(col, "")
+    let mut col = RE
+        .replace_all(col, "")
         .to_lowercase()
         .trim()
         .replace(" ", "_")
@@ -14,7 +15,11 @@ fn _normalize_col(col: &str) -> String {
         .replace("/", "_")
         .replace("?", "")
         .replace(",", "_")
-        .replace("&", "_")
+        .replace("&", "_");
+    if !col.chars().next().unwrap().is_alphabetic() {
+        col = format!("c_{}", col)
+    }
+    col
 }
 
 fn _create_table(db: &mut rusqlite::Connection, table_name: &str, cols: &[String]) {
@@ -44,7 +49,7 @@ fn _load_table_from_path(
         reader
             .headers()?
             .iter()
-            .map(_normalize_col)
+            .map(normalize_col)
             .fold(vec![], |mut v, orig_col| {
                 let mut col = orig_col.clone();
                 let mut i = 1;
@@ -282,4 +287,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use super::normalize_col;
+
+    #[test]
+    fn test_normalize_col() {
+        for (value, expected) in &[("abc", "abc"), ("2/6/2000", "c_2_6_2000")] {
+            assert_eq!(&&normalize_col(value), expected);
+        }
+    }
 }
