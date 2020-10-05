@@ -43,7 +43,7 @@ fn _load_table_from_path(
     let mut num_rows = 0;
     let f = File::open(path)?;
     let file_size = f.metadata().unwrap().len();
-    let mut reader = csv::Reader::from_reader(f);
+    let mut reader = csv::ReaderBuilder::new().flexible(true).from_reader(f);
 
     let normalized_cols =
         reader
@@ -82,7 +82,13 @@ fn _load_table_from_path(
     {
         let mut stmt = tx.prepare(&insert_query).expect("tx.prepare() failed");
         while let Some(row) = records.next() {
-            stmt.execute(&row?).unwrap();
+            let mut row = row?;
+            if row.len() < normalized_cols.len() {
+                for _ in 0..normalized_cols.len() - row.len() {
+                    row.push_field("");
+                }
+            }
+            stmt.execute(&row).unwrap();
 
             num_rows += 1;
             if num_rows % 10000 == 0 {
