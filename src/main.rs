@@ -1,4 +1,4 @@
-use std::env;
+use clap::Clap;
 use std::fs::File;
 
 fn normalize_col(col: &str) -> String {
@@ -38,12 +38,16 @@ fn _create_table(db: &mut rusqlite::Connection, table_name: &str, cols: &[String
 fn _load_table_from_path(
     db: &mut rusqlite::Connection,
     table_name: &str,
-    path: String,
+    path: &str,
+    delimiter: u8,
 ) -> Result<Vec<String>, Box<dyn std::error::Error>> {
     let mut num_rows = 0;
     let f = File::open(path)?;
     let file_size = f.metadata().unwrap().len();
-    let mut reader = csv::ReaderBuilder::new().flexible(true).from_reader(f);
+    let mut reader = csv::ReaderBuilder::new()
+        .flexible(true)
+        .delimiter(delimiter)
+        .from_reader(f);
 
     let normalized_cols =
         reader
@@ -243,8 +247,41 @@ impl rustyline::completion::Completer for SimpleWordCompleter {
     }
 }
 
+#[derive(Clap)]
+struct Opts {
+    #[clap(long, about="Use ',' as the delimiter for the CSV")]
+    comma: bool,
+    #[clap(long, about="Use '|' as the delimiter for the CSV")]
+    pipe: bool,
+    #[clap(long, about="Use '\\t' as the delimiter for the CSV")]
+    tab: bool,
+
+    #[clap()]
+    paths: Vec<String>,
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut paths = env::args().skip(1);
+    let opts = Opts::parse();
+
+    if [opts.comma, opts.pipe, opts.tab]
+        .iter()
+        .filter(|&&v| v)
+        .count()
+        > 1
+    {
+        eprintln!("Can't pass more than one of --comma, --pipe, and --tab");
+        std::process::exit(1);
+    }
+
+    let delim = if opts.comma {
+        b','
+    } else if opts.pipe {
+        b'|'
+    } else if opts.tab {
+        b'\t'
+    } else {
+        b','
+    };
 
     let mut conn = rusqlite::Connection::open_in_memory().unwrap();
 
@@ -256,12 +293,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .map(|&s| s.to_string())
     .collect::<Vec<String>>();
 
-    if paths.len() == 1 {
-        let mut col_names = _load_table_from_path(&mut conn, "t", paths.next().unwrap())?;
+    if opts.paths.len() == 1 {
+        let mut col_names = _load_table_from_path(&mut conn, "t", &opts.paths[0], delim)?;
         base_words.append(&mut col_names);
     } else {
-        for (idx, path) in paths.enumerate() {
-            let mut col_names = _load_table_from_path(&mut conn, &format!("t{}", idx + 1), path)?;
+        for (idx, path) in opts.paths.iter().enumerate() {
+            let mut col_names =
+                _load_table_from_path(&mut conn, &format!("t{}", idx + 1), path, delim)?;
             base_words.append(&mut col_names);
         }
     }
