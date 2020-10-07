@@ -249,11 +249,11 @@ impl rustyline::completion::Completer for SimpleWordCompleter {
 
 #[derive(Clap)]
 struct Opts {
-    #[clap(long, about="Use ',' as the delimiter for the CSV")]
+    #[clap(long, about = "Use ',' as the delimiter for the CSV")]
     comma: bool,
-    #[clap(long, about="Use '|' as the delimiter for the CSV")]
+    #[clap(long, about = "Use '|' as the delimiter for the CSV")]
     pipe: bool,
-    #[clap(long, about="Use '\\t' as the delimiter for the CSV")]
+    #[clap(long, about = "Use '\\t' as the delimiter for the CSV")]
     tab: bool,
 
     #[clap()]
