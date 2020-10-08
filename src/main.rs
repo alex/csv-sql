@@ -339,7 +339,11 @@ mod test {
 
     #[test]
     fn test_normalize_col() {
-        for (value, expected) in &[("abc", "abc"), ("2/6/2000", "c_2_6_2000")] {
+        for (value, expected) in &[
+            ("abc", "abc"),
+            ("abc (123)", "abc"),
+            ("2/6/2000", "c_2_6_2000"),
+        ] {
             assert_eq!(&&normalize_col(value), expected);
         }
     }
