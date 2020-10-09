@@ -263,24 +263,14 @@ struct Opts {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let opts = Opts::parse();
 
-    if [opts.comma, opts.pipe, opts.tab]
-        .iter()
-        .filter(|&&v| v)
-        .count()
-        > 1
-    {
-        eprintln!("Can't pass more than one of --comma, --pipe, and --tab");
-        std::process::exit(1);
-    }
-
-    let delim = if opts.comma {
-        b','
-    } else if opts.pipe {
-        b'|'
-    } else if opts.tab {
-        b'\t'
-    } else {
-        b','
+    let delim = match (opts.comma, opts.pipe, opts.tab) {
+        (true, false, false) | (false, false, false) => b',',
+        (false, true, false) => b'|',
+        (false, false, true) => b'\t',
+        _ => {
+            eprintln!("Can't pass more than one of --comma, --pipe, and --tab");
+            std::process::exit(1);
+        }
     };
 
     let mut conn = rusqlite::Connection::open_in_memory().unwrap();
