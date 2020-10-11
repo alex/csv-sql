@@ -4,3 +4,6 @@ updates:
     directory: "/"
     schedule:
       interval: daily
+    allow:
+      # Also update indirect dependencies
+      - dependency-type: all
