@@ -1,4 +1,5 @@
 use clap::Clap;
+use std::cmp::Ordering;
 use std::fs::File;
 
 fn normalize_col(col: &str) -> String {
@@ -88,12 +89,16 @@ fn _load_table_from_path(
         let mut stmt = tx.prepare(&insert_query).expect("tx.prepare() failed");
         while let Some(row) = records.next() {
             let mut row = row?;
-            if row.len() < normalized_cols.len() {
-                for _ in 0..normalized_cols.len() - row.len() {
-                    row.push_field("");
+            match row.len().cmp(&normalized_cols.len()) {
+                Ordering::Less => {
+                    for _ in 0..normalized_cols.len() - row.len() {
+                        row.push_field("");
+                    }
                 }
-            } else if row.len() > normalized_cols.len() {
-                panic!("Too many fields on row {}, fields: {:?}", num_rows + 1, row);
+                Ordering::Greater => {
+                    panic!("Too many fields on row {}, fields: {:?}", num_rows + 1, row);
+                }
+                Ordering::Equal => {}
             }
             stmt.execute(&row).unwrap();
 
