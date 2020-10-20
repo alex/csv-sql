@@ -92,6 +92,8 @@ fn _load_table_from_path(
                 for _ in 0..normalized_cols.len() - row.len() {
                     row.push_field("");
                 }
+            } else if row.len() > normalized_cols.len() {
+                panic!("Too many fields on row {}, fields: {:?}", num_rows + 1, row);
             }
             stmt.execute(&row).unwrap();
 
