@@ -15,7 +15,8 @@ fn normalize_col(col: &str) -> String {
         .replace("/", "_")
         .replace("?", "")
         .replace(",", "_")
-        .replace("&", "_");
+        .replace("&", "_")
+        .replace("#", "");
     if !col.chars().next().unwrap().is_alphabetic() {
         col = format!("c_{}", col)
     }
@@ -333,6 +334,7 @@ mod test {
             ("abc", "abc"),
             ("abc (123)", "abc"),
             ("2/6/2000", "c_2_6_2000"),
+            ("COMBO#", "combo"),
         ] {
             assert_eq!(&&normalize_col(value), expected);
         }
