@@ -203,6 +203,11 @@ fn _handle_export(conn: &mut rusqlite::Connection, line: &str) -> Result<(), Str
 fn _process_query(conn: &mut rusqlite::Connection, line: &str) {
     let result = if line.starts_with(".export") {
         _handle_export(conn, line)
+    } else if line.starts_with(".schema") {
+        _handle_query(
+            conn,
+            "SELECT sql AS schema FROM sqlite_master WHERE name like 't%'",
+        )
     } else {
         _handle_query(conn, line)
     };
@@ -285,7 +290,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut base_words = [
         "distinct", "select", "from", "group", "by", "order", "where", "count", "limit", "offset",
-        ".export",
+        ".export", ".schema",
     ]
     .iter()
     .map(|&s| s.to_string())
