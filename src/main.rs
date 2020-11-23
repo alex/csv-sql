@@ -230,6 +230,8 @@ impl SimpleWordCompleter {
 impl rustyline::Helper for SimpleWordCompleter {}
 
 impl rustyline::hint::Hinter for SimpleWordCompleter {
+    type Hint = String;
+
     fn hint(&self, _line: &str, _pos: usize, _ctx: &rustyline::Context<'_>) -> Option<String> {
         None
     }
