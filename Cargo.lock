@@ -108,9 +108,9 @@ dependencies = [
 
 [[package]]
 name = "comfy-table"
-version = "1.5.0"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "890d7a24ff876bfa7e405b030ee808ef2ef54582640ff5e311c03fbd070d6209"
+checksum = "6535796862ffc3b0c8ea80dc3f415fa4b3a43e7e5d034b2870f110265ce2e309"
 dependencies = [
  "crossterm",
  "strum",
