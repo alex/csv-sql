@@ -18,7 +18,7 @@ fn normalize_col(col: &str) -> String {
         .replace(",", "_")
         .replace("&", "_")
         .replace("#", "");
-    if !col.chars().next().unwrap().is_alphabetic() {
+    if !col.chars().next().map(char::is_alphabetic).unwrap_or(true) {
         col = format!("c_{}", col)
     }
     col
@@ -345,6 +345,7 @@ mod test {
     #[test]
     fn test_normalize_col() {
         for (value, expected) in &[
+            ("", ""),
             ("abc", "abc"),
             ("abc (123)", "abc"),
             ("2/6/2000", "c_2_6_2000"),
