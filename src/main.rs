@@ -112,10 +112,11 @@ fn _load_table_from_path(
     pb.finish();
 
     println!(
-        "Loaded {} rows into {}({})",
+        "Loaded {} rows into {}({}) from {:?}",
         num_rows,
         table_name,
         normalized_cols.join(", "),
+        path,
     );
     Ok(normalized_cols)
 }
