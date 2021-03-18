@@ -30,3 +30,6 @@ If you'd like to export the results of a query to a CSV file:
     $ cargo run file.csv
     Loaded 3162 rows into t(domain, base_domain, agency, sslv2)
     > .export(results.csv) SELECT COUNT(*) from t;
+
+If you have tab-, pipe-, or semicolon-delimited files you can specify `--tab`,
+`--pipe`, or `--semicolon` respectively).
