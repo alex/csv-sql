@@ -270,6 +270,8 @@ struct Opts {
     pipe: bool,
     #[clap(long, about = "Use '\\t' as the delimiter for the CSV")]
     tab: bool,
+    #[clap(long, about = "Use ';' as the delimiter for the CSV")]
+    semicolon: bool,
 
     #[clap()]
     paths: Vec<String>,
@@ -278,10 +280,11 @@ struct Opts {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let opts = Opts::parse();
 
-    let delim = match (opts.comma, opts.pipe, opts.tab) {
-        (true, false, false) | (false, false, false) => b',',
-        (false, true, false) => b'|',
-        (false, false, true) => b'\t',
+    let delim = match (opts.comma, opts.pipe, opts.tab, opts.semicolon) {
+        (true, false, false, false) | (false, false, false, false) => b',',
+        (false, true, false, false) => b'|',
+        (false, false, true, false) => b'\t',
+        (false, false, false, true) => b';',
         _ => {
             eprintln!("Can't pass more than one of --comma, --pipe, and --tab");
             std::process::exit(1);
