@@ -4,12 +4,14 @@ use std::fs::File;
 
 fn normalize_col(col: &str) -> String {
     lazy_static::lazy_static! {
-        static ref RE: regex::Regex = regex::Regex::new(r"\(.*?\)").unwrap();
+        static ref RE: regex::Regex = regex::Regex::new(r"\(.*?\)$").unwrap();
     }
     let mut col = RE
         .replace_all(col, "")
         .to_lowercase()
         .trim()
+        .replace("(", "")
+        .replace(")", "")
         .replace(" ", "_")
         .replace(".", "_")
         .replace("-", "_")
@@ -351,6 +353,7 @@ mod test {
         for (value, expected) in &[
             ("", ""),
             ("abc", "abc"),
+            ("(S)AO", "sao"),
             ("abc (123)", "abc"),
             ("2/6/2000", "c_2_6_2000"),
             ("COMBO#", "combo"),
