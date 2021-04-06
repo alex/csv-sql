@@ -102,7 +102,7 @@ fn _load_table_from_path(
                 }
                 Ordering::Equal => {}
             }
-            stmt.execute(&row).unwrap();
+            stmt.execute(rusqlite::params_from_iter(&row)).unwrap();
 
             num_rows += 1;
             if num_rows % 10000 == 0 {
