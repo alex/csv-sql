@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 csv = "1.1"
-indicatif = "0.15"
+indicatif = "0.16"
 lazy_static = "1.4"
 comfy-table = "2.1"
 regex = "1.4"
