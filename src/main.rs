@@ -298,7 +298,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut base_words = [
         "distinct", "select", "from", "group", "by", "order", "where", "count", "limit", "offset",
-        ".export", ".schema",
+        "length", "coalesce", ".export", ".schema",
     ]
     .iter()
     .map(|&s| s.to_string())
