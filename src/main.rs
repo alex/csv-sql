@@ -219,6 +219,31 @@ fn _process_query(conn: &mut rusqlite::Connection, line: &str) {
     }
 }
 
+fn install_udfs(c: &mut rusqlite::Connection) -> Result<(), Box<dyn std::error::Error>> {
+    c.create_scalar_function(
+        "regexp_extract",
+        3,
+        rusqlite::functions::FunctionFlags::SQLITE_UTF8
+            | rusqlite::functions::FunctionFlags::SQLITE_DETERMINISTIC,
+        |ctx| {
+            let re = regex::Regex::new(&ctx.get::<Box<str>>(0)?)
+                .map_err(|e| rusqlite::Error::UserFunctionError(Box::new(e)))?;
+            let value = ctx.get::<Box<str>>(1)?;
+            let replacement = ctx.get::<Box<str>>(2)?;
+
+            let caps = match re.captures(&value) {
+                Some(caps) => caps,
+                None => return Ok("".to_string()),
+            };
+            let mut dest = String::new();
+            caps.expand(&replacement, &mut dest);
+            Ok(dest)
+        },
+    )?;
+
+    Ok(())
+}
+
 struct SimpleWordCompleter {
     words: Vec<String>,
 }
@@ -297,8 +322,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut conn = rusqlite::Connection::open_in_memory().unwrap();
 
     let mut base_words = [
-        "distinct", "select", "from", "group", "by", "order", "where", "count", "limit", "offset",
-        "length", "coalesce", ".export", ".schema",
+        "distinct",
+        "select",
+        "from",
+        "group",
+        "by",
+        "order",
+        "where",
+        "count",
+        "limit",
+        "offset",
+        "length",
+        "coalesce",
+        "regexp_extract",
+        ".export",
+        ".schema",
     ]
     .iter()
     .map(|&s| s.to_string())
@@ -314,6 +352,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             base_words.append(&mut col_names);
         }
     }
+
+    install_udfs(&mut conn)?;
 
     let completer = SimpleWordCompleter::new(base_words);
     let mut rl = rustyline::Editor::new();

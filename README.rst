@@ -33,3 +33,14 @@ If you'd like to export the results of a query to a CSV file:
 
 If you have tab-, pipe-, or semicolon-delimited files you can specify `--tab`,
 `--pipe`, or `--semicolon` respectively).
+
+UDFs
+----
+
+``csv-sql`` contains additional UDFs (User Defined Functions) to enable easier
+data analysis. They are:
+
+`regexp_extract(pattern, value, replacement)`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Example: ``regexp_extract("abc-(\d+)", "abc-12345", "lol $1")`` returns ``"lol 12345"``
