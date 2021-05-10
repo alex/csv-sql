@@ -10,6 +10,6 @@ indicatif = "0.16"
 lazy_static = "1.4"
 comfy-table = "2.1"
 regex = "1.5"
-rusqlite = "0.25"
+rusqlite = { version = "0.25", features = ["functions"] }
 rustyline = "8.0"
 clap = "3.0.0-beta.2"
