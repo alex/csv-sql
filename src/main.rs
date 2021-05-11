@@ -226,8 +226,12 @@ fn install_udfs(c: &mut rusqlite::Connection) -> Result<(), Box<dyn std::error::
         rusqlite::functions::FunctionFlags::SQLITE_UTF8
             | rusqlite::functions::FunctionFlags::SQLITE_DETERMINISTIC,
         |ctx| {
-            let re = regex::Regex::new(&ctx.get::<Box<str>>(0)?)
-                .map_err(|e| rusqlite::Error::UserFunctionError(Box::new(e)))?;
+            let re = ctx.get_or_create_aux(
+                0,
+                |vr| -> Result<_, Box<dyn std::error::Error + Send + Sync + 'static>> {
+                    Ok(regex::Regex::new(vr.as_str()?)?)
+                },
+            )?;
             let value = ctx.get::<Box<str>>(1)?;
             let replacement = ctx.get::<Box<str>>(2)?;
 
