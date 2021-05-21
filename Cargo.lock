@@ -112,7 +112,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e4ea1881992efc993e4dc50a324cdbd03216e41bdc8385720ff47efc9bd2ca8"
 dependencies = [
  "error-code",
- "str-buf 1.0.5",
+ "str-buf",
  "winapi",
 ]
 
@@ -236,12 +236,12 @@ checksum = "c34f04666d835ff5d62e058c3995147c06f42fe86ff053337632bca83e42702d"
 
 [[package]]
 name = "error-code"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d4871041f3339e2cd4a23c698f89519e1ca62aa73190eddcc18dde4ee11e8ff"
+checksum = "b5115567ac25674e0043e472be13d14e537f37ea8aa4bdc4aef0c89add1db1ff"
 dependencies = [
  "libc",
- "str-buf 2.0.0",
+ "str-buf",
 ]
 
 [[package]]
@@ -694,12 +694,6 @@ name = "str-buf"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d44a3643b4ff9caf57abcee9c2c621d6c03d9135e0d8b589bd9afb5992cb176a"
-
-[[package]]
-name = "str-buf"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a66ae6a6cd930c97707cb3f1b62aadb8ddddd2fefa9df539564b3bfaa15dd31f"
 
 [[package]]
 name = "strsim"
