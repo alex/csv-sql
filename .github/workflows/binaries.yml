@@ -1,0 +1,37 @@
+on:
+  pull_request: {}
+  push:
+    branches: master
+
+name: Build Binaries
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os:
+          - name: macos-latest
+            binary: csvsql
+          - name: windows-latest
+            binary: csvsql.exe
+    runs-on: ${{ matrix.os.name }}
+    name: "${{ matrix.os.name }}"
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --features rusqlite/bundled
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: csvsql-${{ matrix.os.name }}
+          path: target/release/${{ matrix.os.binary }}

@@ -44,3 +44,9 @@ data analysis. They are:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Example: ``regexp_extract("abc-(\d+)", "abc-12345", "lol $1")`` returns ``"lol 12345"``
+
+Binaries
+--------
+
+Binaries for macOS and Windows are automatically built in CI and can be
+downloaded from Github Actions.
