@@ -12,6 +12,8 @@ jobs:
         os:
           - name: macos-latest
             binary: csvsql
+          - name: linux-latest
+            binary: csvsql
           - name: windows-latest
             binary: csvsql.exe
     runs-on: ${{ matrix.os.name }}
