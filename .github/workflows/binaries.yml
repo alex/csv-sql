@@ -12,7 +12,7 @@ jobs:
         os:
           - name: macos-latest
             binary: csvsql
-          - name: linux-latest
+          - name: ubuntu-latest
             binary: csvsql
           - name: windows-latest
             binary: csvsql.exe
