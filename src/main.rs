@@ -252,7 +252,7 @@ struct SimpleWordCompleter {
     words: Vec<String>,
 }
 
-static BREAK_CHARS: [u8; 4] = [b' ', b'(', b')', b','];
+static BREAK_CHARS: [u8; 4] = [b' ', b'(', b')', b',', b'.'];
 impl SimpleWordCompleter {
     fn new(words: Vec<String>) -> SimpleWordCompleter {
         SimpleWordCompleter { words }
