@@ -85,7 +85,7 @@ fn _load_table_from_path(
             .template("[{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})")
             .progress_chars("#>-"),
     );
-    let mut records = reader.records();
+    let mut records = reader.byte_records();
     let tx = db.transaction().unwrap();
     {
         let mut stmt = tx.prepare(&insert_query).expect("tx.prepare() failed");
@@ -94,7 +94,7 @@ fn _load_table_from_path(
             match row.len().cmp(&normalized_cols.len()) {
                 Ordering::Less => {
                     for _ in 0..normalized_cols.len() - row.len() {
-                        row.push_field("");
+                        row.push_field(b"");
                     }
                 }
                 Ordering::Greater => {
@@ -102,7 +102,10 @@ fn _load_table_from_path(
                 }
                 Ordering::Equal => {}
             }
-            stmt.execute(rusqlite::params_from_iter(&row)).unwrap();
+            stmt.execute(rusqlite::params_from_iter(
+                row.iter().map(String::from_utf8_lossy),
+            ))
+            .unwrap();
 
             num_rows += 1;
             if num_rows % 10000 == 0 {
