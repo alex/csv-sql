@@ -368,6 +368,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let completer = SimpleWordCompleter::new(base_words);
     let mut rl = rustyline::Editor::new();
     rl.set_helper(Some(completer));
+    let history_path = dirs::home_dir().unwrap().join(".csv-sql-history");
+    let _ = rl.load_history(&history_path);
     loop {
         match rl.readline("> ") {
             Ok(line) => {
@@ -390,6 +392,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
+    rl.save_history(&history_path).unwrap();
 
     Ok(())
 }
