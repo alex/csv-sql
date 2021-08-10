@@ -190,7 +190,7 @@ fn _handle_export(conn: &mut rusqlite::Connection, line: &str) -> Result<(), Str
 
     let mut stmt = _prepare_query(conn, query)?;
 
-    let mut writer = csv::Writer::from_path(destination_path).unwrap();
+    let mut writer = csv::Writer::from_path(destination_path).map_err(|e| format!("{:?}", e))?;
     writer.write_record(stmt.column_names()).unwrap();
 
     let mut results = stmt.query(&[] as &[&dyn rusqlite::types::ToSql]).unwrap();
@@ -329,6 +329,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut conn = rusqlite::Connection::open_in_memory().unwrap();
 
     let mut base_words = [
+        // keywords
         "distinct",
         "select",
         "from",
@@ -339,11 +340,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "count",
         "limit",
         "offset",
+        // functions
         "length",
         "coalesce",
         "regexp_extract",
-        ".export",
-        ".schema",
+        // csv-sql commands
+        "export",
+        "schema",
     ]
     .iter()
     .map(|&s| s.to_string())
