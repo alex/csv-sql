@@ -248,6 +248,22 @@ fn install_udfs(c: &mut rusqlite::Connection) -> Result<(), Box<dyn std::error::
             Ok(dest)
         },
     )?;
+    c.create_scalar_function(
+        "regexp",
+        2,
+        rusqlite::functions::FunctionFlags::SQLITE_UTF8
+            | rusqlite::functions::FunctionFlags::SQLITE_DETERMINISTIC,
+        |ctx| {
+            let re = ctx.get_or_create_aux(
+                0,
+                |vr| -> Result<_, Box<dyn std::error::Error + Send + Sync + 'static>> {
+                    Ok(regex::Regex::new(vr.as_str()?)?)
+                },
+            )?;
+            let value = ctx.get::<Box<str>>(1)?;
+            Ok(re.is_match(&value))
+        },
+    )?;
 
     Ok(())
 }
