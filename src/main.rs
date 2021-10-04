@@ -156,6 +156,7 @@ fn _prepare_query<'a>(
 
 fn _handle_query(conn: &mut rusqlite::Connection, line: &str) -> Result<(), String> {
     let mut stmt = _prepare_query(conn, line)?;
+    let col_count = stmt.column_count();
 
     let mut table = comfy_table::Table::new();
     table.load_preset("││──╞═╪╡┆    ┬┴┌┐└┘");
@@ -169,7 +170,7 @@ fn _handle_query(conn: &mut rusqlite::Connection, line: &str) -> Result<(), Stri
     let mut results = stmt.query(&[] as &[&dyn rusqlite::types::ToSql]).unwrap();
     while let Ok(Some(r)) = results.next() {
         let mut row = comfy_table::Row::new();
-        for i in 0..r.column_count() {
+        for i in 0..col_count {
             let cell: FromAnySqlType = r.get(i).unwrap();
             row.add_cell(comfy_table::Cell::new(&cell.value));
         }
@@ -190,6 +191,7 @@ fn _handle_export(conn: &mut rusqlite::Connection, line: &str) -> Result<(), Str
     let query = &caps[2];
 
     let mut stmt = _prepare_query(conn, query)?;
+    let col_count = stmt.column_count();
 
     let mut writer = csv::Writer::from_path(destination_path).map_err(|e| format!("{:?}", e))?;
     writer.write_record(stmt.column_names()).unwrap();
@@ -197,7 +199,7 @@ fn _handle_export(conn: &mut rusqlite::Connection, line: &str) -> Result<(), Str
     let mut results = stmt.query(&[] as &[&dyn rusqlite::types::ToSql]).unwrap();
     while let Ok(Some(r)) = results.next() {
         writer
-            .write_record((0..r.column_count()).map(|i| {
+            .write_record((0..col_count).map(|i| {
                 let cell: FromAnySqlType = r.get(i).unwrap();
                 cell.value
             }))
