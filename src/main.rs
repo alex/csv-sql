@@ -1,4 +1,4 @@
-use clap::Clap;
+use clap::Parser;
 use std::cmp::Ordering;
 use std::fs::File;
 
@@ -316,7 +316,7 @@ impl rustyline::completion::Completer for SimpleWordCompleter {
     }
 }
 
-#[derive(Clap)]
+#[derive(clap::Parser)]
 struct Opts {
     #[clap(long, about = "Use ',' as the delimiter for the CSV")]
     comma: bool,
