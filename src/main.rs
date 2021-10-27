@@ -30,7 +30,7 @@ fn normalize_col(col: &str) -> String {
 fn _create_table(db: &mut rusqlite::Connection, table_name: &str, cols: &[String]) {
     let create_columns = cols
         .iter()
-        .map(|c| format!("{} varchar", c))
+        .map(|c| format!("\"{}\" varchar", c))
         .collect::<Vec<String>>()
         .join(", ");
     db.execute(
