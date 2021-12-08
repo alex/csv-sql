@@ -10,17 +10,17 @@ fn normalize_col(col: &str) -> String {
         .replace_all(col, "")
         .to_lowercase()
         .trim()
-        .replace("(", "")
-        .replace(")", "")
-        .replace(" ", "_")
-        .replace(".", "_")
-        .replace("-", "_")
-        .replace("/", "_")
-        .replace("?", "")
-        .replace(",", "_")
-        .replace("&", "_")
-        .replace(":", "")
-        .replace("#", "");
+        .replace('(', "")
+        .replace(')', "")
+        .replace(' ', "_")
+        .replace('.', "_")
+        .replace('-', "_")
+        .replace('/', "_")
+        .replace('?', "")
+        .replace(',', "_")
+        .replace('&', "_")
+        .replace(':', "")
+        .replace('#', "");
     if !col.chars().next().map(char::is_alphabetic).unwrap_or(true) {
         col = format!("c_{}", col)
     }
