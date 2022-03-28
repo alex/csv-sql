@@ -739,9 +739,9 @@ dependencies = [
 
 [[package]]
 name = "signal-hook-mio"
-version = "0.2.1"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "29fd5867f1c4f2c5be079aee7a2adf1152ebb04a4bc4d341f504b7dece607ed4"
+checksum = "29ad2e15f37ec9a6cc544097b78a1ec90001e9f71b81338ca39f430adaca99af"
 dependencies = [
  "libc",
  "mio",
