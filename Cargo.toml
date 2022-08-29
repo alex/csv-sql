@@ -8,7 +8,7 @@ edition = "2018"
 csv = "1.1"
 indicatif = "0.16"
 lazy_static = "1.4"
-comfy-table = "6.0"
+comfy-table = "6.1"
 regex = "1.6"
 rusqlite = { version = "0.28", features = ["functions"] }
 rustyline = "9.1"
