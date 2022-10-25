@@ -16,7 +16,7 @@ fn normalize_col(col: &str) -> String {
         .replace([',', '&'], "_")
         .replace([':', '#'], "");
     if !col.chars().next().map(char::is_alphabetic).unwrap_or(true) {
-        col = format!("c_{}", col)
+        col = format!("c_{col}")
     }
     col
 }
@@ -24,11 +24,11 @@ fn normalize_col(col: &str) -> String {
 fn _create_table(db: &mut rusqlite::Connection, table_name: &str, cols: &[String]) {
     let create_columns = cols
         .iter()
-        .map(|c| format!("\"{}\" varchar", c))
+        .map(|c| format!("\"{c}\" varchar"))
         .collect::<Vec<String>>()
         .join(", ");
     db.execute(
-        &format!("CREATE TABLE {} ({})", table_name, create_columns),
+        &format!("CREATE TABLE {table_name} ({create_columns})"),
         &[] as &[&dyn rusqlite::types::ToSql],
     )
     .unwrap();
@@ -57,7 +57,7 @@ fn _load_table_from_path(
                 let mut col = orig_col.clone();
                 let mut i = 1;
                 while v.contains(&col) {
-                    col = format!("{}_{}", orig_col, i);
+                    col = format!("{orig_col}_{i}");
                     i += 1
                 }
                 v.push(col);
@@ -166,11 +166,11 @@ fn _handle_query(conn: &mut rusqlite::Connection, line: &str) -> Result<(), Stri
         let mut row = comfy_table::Row::new();
         for i in 0..col_count {
             let cell: FromAnySqlType = r.get(i).unwrap();
-            row.add_cell(comfy_table::Cell::new(&cell.value));
+            row.add_cell(comfy_table::Cell::new(cell.value));
         }
         table.add_row(row);
     }
-    println!("{}", table);
+    println!("{table}");
     Ok(())
 }
 
@@ -187,7 +187,7 @@ fn _handle_export(conn: &mut rusqlite::Connection, line: &str) -> Result<(), Str
     let mut stmt = _prepare_query(conn, query)?;
     let col_count = stmt.column_count();
 
-    let mut writer = csv::Writer::from_path(destination_path).map_err(|e| format!("{:?}", e))?;
+    let mut writer = csv::Writer::from_path(destination_path).map_err(|e| format!("{e:?}"))?;
     writer.write_record(stmt.column_names()).unwrap();
 
     let mut results = stmt.query(&[] as &[&dyn rusqlite::types::ToSql]).unwrap();
@@ -215,7 +215,7 @@ fn _process_query(conn: &mut rusqlite::Connection, line: &str) {
         _handle_query(conn, line)
     };
     if let Err(e) = result {
-        println!("{}", e);
+        println!("{e}");
     }
 }
 
@@ -400,7 +400,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 break;
             }
             Err(err) => {
-                println!("Error: {}", err);
+                println!("Error: {err}");
                 break;
             }
         }
