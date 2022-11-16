@@ -12,5 +12,5 @@ comfy-table = "6.1"
 regex = "1.7"
 rusqlite = { version = "0.28", features = ["functions"] }
 rustyline = "9.1"
-clap = { version = "4.0.25", features = ["derive"] }
+clap = { version = "4.0.26", features = ["derive"] }
 dirs = "4.0"
