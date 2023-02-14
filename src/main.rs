@@ -77,7 +77,7 @@ fn _load_table_from_path(
     let pb = indicatif::ProgressBar::new(file_size);
     pb.set_style(
         indicatif::ProgressStyle::default_bar()
-            .template("[{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})")
+            .template("[{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})")?
             .progress_chars("#>-"),
     );
     let mut records = reader.byte_records();
