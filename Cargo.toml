@@ -5,7 +5,7 @@ authors = ["Alex Gaynor <alex.gaynor@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-csv = "1.1"
+csv = "1.2"
 indicatif = "0.16"
 lazy_static = "1.4"
 comfy-table = "6.1"
