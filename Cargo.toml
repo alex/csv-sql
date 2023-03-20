@@ -13,4 +13,4 @@ regex = "1.7"
 rusqlite = { version = "0.28", features = ["functions"] }
 rustyline = "10.1"
 clap = { version = "4.1.9", features = ["derive"] }
-dirs = "4.0"
+dirs = "5.0"
