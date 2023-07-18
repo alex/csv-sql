@@ -21,7 +21,7 @@ fn normalize_col(col: &str) -> String {
     col
 }
 
-fn _create_table(db: &mut rusqlite::Connection, table_name: &str, cols: &[String]) {
+fn _create_table(db: &rusqlite::Connection, table_name: &str, cols: &[String]) {
     let create_columns = cols
         .iter()
         .map(|c| format!("\"{c}\" varchar"))
@@ -142,13 +142,13 @@ impl rusqlite::types::FromSql for FromAnySqlType {
 }
 
 fn _prepare_query<'a>(
-    conn: &'a mut rusqlite::Connection,
+    conn: &'a rusqlite::Connection,
     query: &str,
 ) -> Result<rusqlite::Statement<'a>, String> {
     conn.prepare(query).map_err(|e| e.to_string())
 }
 
-fn _handle_query(conn: &mut rusqlite::Connection, line: &str) -> Result<(), String> {
+fn _handle_query(conn: &rusqlite::Connection, line: &str) -> Result<(), String> {
     let mut stmt = _prepare_query(conn, line)?;
     let col_count = stmt.column_count();
 
@@ -174,7 +174,7 @@ fn _handle_query(conn: &mut rusqlite::Connection, line: &str) -> Result<(), Stri
     Ok(())
 }
 
-fn _handle_export(conn: &mut rusqlite::Connection, line: &str) -> Result<(), String> {
+fn _handle_export(conn: &rusqlite::Connection, line: &str) -> Result<(), String> {
     lazy_static::lazy_static! {
         static ref RE: regex::Regex = regex::Regex::new(r"^\.export\(([\w_\-\./]+)\) (.*)").unwrap();
     }
@@ -203,7 +203,7 @@ fn _handle_export(conn: &mut rusqlite::Connection, line: &str) -> Result<(), Str
     Ok(())
 }
 
-fn _process_query(conn: &mut rusqlite::Connection, line: &str) {
+fn _process_query(conn: &rusqlite::Connection, line: &str) {
     let result = if line.starts_with(".export") {
         _handle_export(conn, line)
     } else if line.starts_with(".schema") {
@@ -219,7 +219,7 @@ fn _process_query(conn: &mut rusqlite::Connection, line: &str) {
     }
 }
 
-fn install_udfs(c: &mut rusqlite::Connection) -> Result<(), Box<dyn std::error::Error>> {
+fn install_udfs(c: &rusqlite::Connection) -> Result<(), Box<dyn std::error::Error>> {
     c.create_scalar_function(
         "regexp_extract",
         3,
@@ -376,7 +376,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    install_udfs(&mut conn)?;
+    install_udfs(&conn)?;
 
     let completer = SimpleWordCompleter::new(base_words);
     let mut rl = rustyline::Editor::new()?;
@@ -389,7 +389,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if line.trim().is_empty() {
                     continue;
                 }
-                _process_query(&mut conn, &line);
+                _process_query(&conn, &line);
                 rl.add_history_entry(line);
             }
             Err(rustyline::error::ReadlineError::Interrupted) => {
