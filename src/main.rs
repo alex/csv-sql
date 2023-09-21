@@ -268,7 +268,7 @@ struct SimpleWordCompleter {
     words: Vec<String>,
 }
 
-static BREAK_CHARS: [u8; 5] = [b' ', b'(', b')', b',', b'.'];
+static BREAK_CHARS: [char; 5] = [' ', '(', ')', ',', '.'];
 impl SimpleWordCompleter {
     fn new(words: Vec<String>) -> SimpleWordCompleter {
         SimpleWordCompleter { words }
@@ -298,7 +298,8 @@ impl rustyline::completion::Completer for SimpleWordCompleter {
         pos: usize,
         _ctx: &rustyline::Context<'_>,
     ) -> rustyline::Result<(usize, Vec<String>)> {
-        let (start, word) = rustyline::completion::extract_word(line, pos, None, &BREAK_CHARS);
+        let (start, word) =
+            rustyline::completion::extract_word(line, pos, None, |c| BREAK_CHARS.contains(&c));
 
         let matches = self
             .words
@@ -390,7 +391,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     continue;
                 }
                 _process_query(&conn, &line);
-                rl.add_history_entry(line);
+                let _ = rl.add_history_entry(line);
             }
             Err(rustyline::error::ReadlineError::Interrupted) => {
                 println!("Interrupted");
