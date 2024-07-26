@@ -228,7 +228,6 @@ dependencies = [
  "csv",
  "dirs",
  "indicatif",
- "lazy_static",
  "regex",
  "rusqlite",
  "rustyline",

@@ -1,11 +1,11 @@
 use clap::Parser;
 use std::cmp::Ordering;
 use std::fs::File;
+use std::sync::LazyLock;
 
 fn normalize_col(col: &str) -> String {
-    lazy_static::lazy_static! {
-        static ref RE: regex::Regex = regex::Regex::new(r"\(.*?\)$").unwrap();
-    }
+    static RE: LazyLock<regex::Regex> = LazyLock::new(|| regex::Regex::new(r"\(.*?\)$").unwrap());
+
     let mut col = RE
         .replace_all(col, "")
         .to_lowercase()
@@ -175,9 +175,9 @@ fn _handle_query(conn: &rusqlite::Connection, line: &str) -> Result<(), String> 
 }
 
 fn _handle_export(conn: &rusqlite::Connection, line: &str) -> Result<(), String> {
-    lazy_static::lazy_static! {
-        static ref RE: regex::Regex = regex::Regex::new(r"^\.export\(([\w_\-\./]+)\) (.*)").unwrap();
-    }
+    static RE: LazyLock<regex::Regex> =
+        LazyLock::new(|| regex::Regex::new(r"^\.export\(([\w_\-\./]+)\) (.*)").unwrap());
+
     let caps = RE
         .captures(line)
         .ok_or_else(|| "Must match `.export(file-name) SQL`".to_owned())?;
