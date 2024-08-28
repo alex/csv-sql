@@ -358,6 +358,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "length",
         "coalesce",
         "regexp_extract",
+        "group_concat",
         // csv-sql commands
         "export",
         "schema",
