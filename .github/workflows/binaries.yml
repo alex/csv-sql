@@ -33,7 +33,7 @@ jobs:
           command: build
           args: --release --features rusqlite/bundled
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: csvsql-${{ matrix.os.name }}
           path: target/release/${{ matrix.os.binary }}
