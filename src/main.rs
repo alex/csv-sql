@@ -148,29 +148,58 @@ fn _prepare_query<'a>(
     conn.prepare(query).map_err(|e| e.to_string())
 }
 
-fn _handle_query(conn: &rusqlite::Connection, line: &str) -> Result<(), String> {
+fn _handle_query(
+    conn: &rusqlite::Connection,
+    line: &str,
+    style: &OutputStyle,
+) -> Result<(), String> {
     let mut stmt = _prepare_query(conn, line)?;
     let col_count = stmt.column_count();
-
-    let mut table = comfy_table::Table::new();
-    table.load_preset("││──╞═╪╡┆    ┬┴┌┐└┘");
-    table.set_content_arrangement(comfy_table::ContentArrangement::Dynamic);
-    let mut title_row = comfy_table::Row::new();
-    for col in stmt.column_names() {
-        title_row.add_cell(comfy_table::Cell::new(col));
-    }
-    table.set_header(title_row);
-
+    let col_names = stmt
+        .column_names()
+        .into_iter()
+        .map(|s| s.to_owned())
+        .collect::<Vec<_>>();
     let mut results = stmt.query(&[] as &[&dyn rusqlite::types::ToSql]).unwrap();
-    while let Ok(Some(r)) = results.next() {
-        let mut row = comfy_table::Row::new();
-        for i in 0..col_count {
-            let cell: FromAnySqlType = r.get(i).unwrap();
-            row.add_cell(comfy_table::Cell::new(cell.value));
+
+    match style {
+        OutputStyle::Table => {
+            let mut table = comfy_table::Table::new();
+            table.load_preset("││──╞═╪╡┆    ┬┴┌┐└┘");
+            table.set_content_arrangement(comfy_table::ContentArrangement::Dynamic);
+            let mut title_row = comfy_table::Row::new();
+            for col in col_names {
+                title_row.add_cell(comfy_table::Cell::new(col));
+            }
+            table.set_header(title_row);
+
+            while let Ok(Some(r)) = results.next() {
+                let mut row = comfy_table::Row::new();
+                for i in 0..col_count {
+                    let cell: FromAnySqlType = r.get(i).unwrap();
+                    row.add_cell(comfy_table::Cell::new(cell.value));
+                }
+                table.add_row(row);
+            }
+            println!("{table}");
         }
-        table.add_row(row);
+        OutputStyle::Vertical => {
+            let max_col_length = col_names.iter().map(|c| c.len()).max().unwrap();
+            while let Ok(Some(r)) = results.next() {
+                for (i, name) in col_names.iter().enumerate() {
+                    let cell: FromAnySqlType = r.get(i).unwrap();
+                    println!(
+                        "{field:width$}: {value}",
+                        field = name,
+                        width = max_col_length,
+                        value = cell.value
+                    );
+                }
+                println!("---------");
+            }
+        }
     }
-    println!("{table}");
+
     Ok(())
 }
 
@@ -203,16 +232,32 @@ fn _handle_export(conn: &rusqlite::Connection, line: &str) -> Result<(), String>
     Ok(())
 }
 
-fn _process_query(conn: &rusqlite::Connection, line: &str) {
+fn _process_query(conn: &rusqlite::Connection, line: &str, style: &mut OutputStyle) {
     let result = if line.starts_with(".export") {
         _handle_export(conn, line)
     } else if line.starts_with(".schema") {
         _handle_query(
             conn,
             "SELECT sql AS schema FROM sqlite_master WHERE name like 't%'",
+            style,
         )
+    } else if line.starts_with(".style") {
+        static RE: LazyLock<regex::Regex> =
+            LazyLock::new(|| regex::Regex::new(r"^\.style\((table|vertical)\)").unwrap());
+
+        match RE.captures(line).as_ref().map(|caps| &caps[1]) {
+            Some("table") => {
+                *style = OutputStyle::Table;
+                Ok(())
+            }
+            Some("vertical") => {
+                *style = OutputStyle::Vertical;
+                Ok(())
+            }
+            _ => Err("Must match `.style(table|vertical)`".to_owned()),
+        }
     } else {
-        _handle_query(conn, line)
+        _handle_query(conn, line, style)
     };
     if let Err(e) = result {
         println!("{e}");
@@ -326,6 +371,11 @@ struct Opts {
     paths: Vec<String>,
 }
 
+enum OutputStyle {
+    Table,
+    Vertical,
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let opts = Opts::parse();
 
@@ -362,6 +412,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // csv-sql commands
         "export",
         "schema",
+        "style",
+        "table",
+        "vertical",
     ]
     .iter()
     .map(|&s| s.to_string())
@@ -380,6 +433,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     install_udfs(&conn)?;
 
+    let mut style = OutputStyle::Table;
     let completer = SimpleWordCompleter::new(base_words);
     let mut rl = rustyline::Editor::new()?;
     rl.set_helper(Some(completer));
@@ -391,7 +445,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if line.trim().is_empty() {
                     continue;
                 }
-                _process_query(&conn, &line);
+                _process_query(&conn, &line, &mut style);
                 let _ = rl.add_history_entry(line);
             }
             Err(rustyline::error::ReadlineError::Interrupted) => {

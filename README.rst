@@ -34,6 +34,16 @@ If you'd like to export the results of a query to a CSV file:
 If you have tab-, pipe-, or semicolon-delimited files you can specify `--tab`,
 `--pipe`, or `--semicolon` respectively).
 
+You can change the output style to be "vertical" instead of "table" with:
+
+.. code-block:: console
+
+    $ cargo run file.csv
+    Loaded 3162 rows into t(domain, base_domain, agency, sslv2)
+    > .style(table)
+    > -- Or
+    > .style(vertical)
+
 UDFs
 ----
 
