@@ -185,17 +185,19 @@ fn _handle_query(
         }
         OutputStyle::Vertical => {
             let max_col_length = col_names.iter().map(|c| c.len()).max().unwrap();
+            let mut record_number = 1;
             while let Ok(Some(r)) = results.next() {
+                println!("------ [ RECORD {record_number} ] ------");
                 for (i, name) in col_names.iter().enumerate() {
                     let cell: FromAnySqlType = r.get(i).unwrap();
                     println!(
-                        "{field:width$}: {value}",
+                        "{field:width$} | {value}",
                         field = name,
                         width = max_col_length,
                         value = cell.value
                     );
                 }
-                println!("---------");
+                record_number += 1;
             }
         }
     }
