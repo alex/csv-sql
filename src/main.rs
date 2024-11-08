@@ -39,7 +39,7 @@ fn _load_table_from_path(
     table_name: &str,
     path: &str,
     delimiter: u8,
-) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+) -> anyhow::Result<Vec<String>> {
     let mut num_rows = 0;
     let f = File::open(path)?;
     let file_size = f.metadata().unwrap().len();
@@ -93,7 +93,7 @@ fn _load_table_from_path(
                     }
                 }
                 Ordering::Greater => {
-                    panic!("Too many fields on row {}, fields: {:?}", num_rows + 1, row);
+                    anyhow::bail!("Too many fields on row {}, fields: {:?}", num_rows + 1, row);
                 }
                 Ordering::Equal => {}
             }
@@ -144,15 +144,15 @@ impl rusqlite::types::FromSql for FromAnySqlType {
 fn _prepare_query<'a>(
     conn: &'a rusqlite::Connection,
     query: &str,
-) -> Result<rusqlite::Statement<'a>, String> {
-    conn.prepare(query).map_err(|e| e.to_string())
+) -> anyhow::Result<rusqlite::Statement<'a>> {
+    Ok(conn.prepare(query)?)
 }
 
 fn _handle_query(
     conn: &rusqlite::Connection,
     line: &str,
     style: &OutputStyle,
-) -> Result<(), String> {
+) -> anyhow::Result<()> {
     let mut stmt = _prepare_query(conn, line)?;
     let col_count = stmt.column_count();
     let col_names = stmt
@@ -205,20 +205,20 @@ fn _handle_query(
     Ok(())
 }
 
-fn _handle_export(conn: &rusqlite::Connection, line: &str) -> Result<(), String> {
+fn _handle_export(conn: &rusqlite::Connection, line: &str) -> anyhow::Result<()> {
     static RE: LazyLock<regex::Regex> =
         LazyLock::new(|| regex::Regex::new(r"^\.export\(([\w_\-\./]+)\) (.*)").unwrap());
 
     let caps = RE
         .captures(line)
-        .ok_or_else(|| "Must match `.export(file-name) SQL`".to_owned())?;
+        .ok_or_else(|| anyhow::anyhow!("Must match `.export(file-name) SQL`"))?;
     let destination_path = &caps[1];
     let query = &caps[2];
 
     let mut stmt = _prepare_query(conn, query)?;
     let col_count = stmt.column_count();
 
-    let mut writer = csv::Writer::from_path(destination_path).map_err(|e| format!("{e:?}"))?;
+    let mut writer = csv::Writer::from_path(destination_path)?;
     writer.write_record(stmt.column_names()).unwrap();
 
     let mut results = stmt.query(&[] as &[&dyn rusqlite::types::ToSql]).unwrap();
@@ -256,17 +256,17 @@ fn _process_query(conn: &rusqlite::Connection, line: &str, style: &mut OutputSty
                 *style = OutputStyle::Vertical;
                 Ok(())
             }
-            _ => Err("Must match `.style(table|vertical)`".to_owned()),
+            _ => Err(anyhow::anyhow!("Must match `.style(table|vertical)`")),
         }
     } else {
         _handle_query(conn, line, style)
     };
     if let Err(e) = result {
-        println!("{e}");
+        println!("{e:?}");
     }
 }
 
-fn install_udfs(c: &rusqlite::Connection) -> Result<(), Box<dyn std::error::Error>> {
+fn install_udfs(c: &rusqlite::Connection) -> anyhow::Result<()> {
     c.create_scalar_function(
         "regexp_extract",
         3,
@@ -378,7 +378,7 @@ enum OutputStyle {
     Vertical,
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> anyhow::Result<()> {
     let opts = Opts::parse();
 
     let delim = match (opts.comma, opts.pipe, opts.tab, opts.semicolon) {
