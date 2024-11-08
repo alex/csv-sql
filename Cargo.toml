@@ -13,4 +13,4 @@ rusqlite = { version = "0.32", features = ["functions"] }
 rustyline = "14"
 clap = { version = "4.5.20", features = ["derive"] }
 dirs = "5.0"
-anyhow = "1.0.89"
+anyhow = "1.0.93"
