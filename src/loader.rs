@@ -27,14 +27,13 @@ pub trait Loader {
     fn progress_position(&self) -> u64;
 
     /// Returns the names of fields, as they exist in the underlying data.
-    fn raw_fields(&self) -> &[impl AsRef<str>];
+    fn raw_fields(&mut self) -> anyhow::Result<impl Iterator<Item = &str>>;
 
     fn next_record(&mut self) -> Option<anyhow::Result<Self::RecordType>>;
 }
 
 pub struct CsvLoader<'a> {
     path: &'a str,
-    headers: Vec<String>,
     records: csv::ByteRecordsIntoIter<File>,
 }
 
@@ -42,18 +41,13 @@ impl<'a> CsvLoader<'a> {
     pub fn new(path: &'a str, delimiter: u8) -> anyhow::Result<Self> {
         let f = File::open(path)?;
 
-        let mut reader = csv::ReaderBuilder::new()
+        let reader = csv::ReaderBuilder::new()
             .flexible(true)
             .delimiter(delimiter)
             .from_reader(f);
 
         Ok(CsvLoader {
             path,
-            headers: reader
-                .headers()?
-                .into_iter()
-                .map(|v| v.to_string())
-                .collect(),
             records: reader.into_byte_records(),
         })
     }
@@ -74,8 +68,8 @@ impl Loader for CsvLoader<'_> {
         self.records.reader().position().byte()
     }
 
-    fn raw_fields(&self) -> &[impl AsRef<str>] {
-        &self.headers
+    fn raw_fields(&mut self) -> anyhow::Result<impl Iterator<Item = &str>> {
+        Ok(self.records.reader_mut().headers()?.iter())
     }
 
     fn next_record(&mut self) -> Option<anyhow::Result<Self::RecordType>> {

@@ -54,20 +54,20 @@ fn _load_table_from_loader(
     let mut num_rows = 0;
     let progress_size = loader.progress_size();
 
-    let normalized_cols = loader
-        .raw_fields()
-        .iter()
-        .map(|v| normalize_col(v.as_ref()))
-        .fold(vec![], |mut v, orig_col| {
-            let mut col = orig_col.clone();
-            let mut i = 1;
-            while v.contains(&col) {
-                col = format!("{orig_col}_{i}");
-                i += 1
-            }
-            v.push(col);
-            v
-        });
+    let normalized_cols =
+        loader
+            .raw_fields()?
+            .map(normalize_col)
+            .fold(vec![], |mut v, orig_col| {
+                let mut col = orig_col.clone();
+                let mut i = 1;
+                while v.contains(&col) {
+                    col = format!("{orig_col}_{i}");
+                    i += 1
+                }
+                v.push(col);
+                v
+            });
     _create_table(db, table_name, &normalized_cols);
 
     let insert_query = format!(
