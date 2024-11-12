@@ -1,7 +1,8 @@
 use clap::Parser;
-use std::cmp::Ordering;
-use std::fs::File;
+use std::iter;
 use std::sync::LazyLock;
+
+use csvsql::ExactSizeIterable;
 
 fn normalize_col(col: &str) -> String {
     static RE: LazyLock<regex::Regex> = LazyLock::new(|| regex::Regex::new(r"\(.*?\)$").unwrap());
@@ -40,29 +41,33 @@ fn _load_table_from_path(
     path: &str,
     delimiter: u8,
 ) -> anyhow::Result<Vec<String>> {
-    let mut num_rows = 0;
-    let f = File::open(path)?;
-    let file_size = f.metadata().unwrap().len();
-    let mut reader = csv::ReaderBuilder::new()
-        .flexible(true)
-        .delimiter(delimiter)
-        .from_reader(f);
+    let loader = csvsql::CsvLoader::new(path, delimiter)?;
 
-    let normalized_cols =
-        reader
-            .headers()?
-            .iter()
-            .map(normalize_col)
-            .fold(vec![], |mut v, orig_col| {
-                let mut col = orig_col.clone();
-                let mut i = 1;
-                while v.contains(&col) {
-                    col = format!("{orig_col}_{i}");
-                    i += 1
-                }
-                v.push(col);
-                v
-            });
+    _load_table_from_loader(db, table_name, loader)
+}
+
+fn _load_table_from_loader(
+    db: &mut rusqlite::Connection,
+    table_name: &str,
+    mut loader: impl csvsql::Loader,
+) -> anyhow::Result<Vec<String>> {
+    let mut num_rows = 0;
+    let progress_size = loader.progress_size();
+
+    let normalized_cols = loader
+        .raw_fields()
+        .iter()
+        .map(|v| normalize_col(v.as_ref()))
+        .fold(vec![], |mut v, orig_col| {
+            let mut col = orig_col.clone();
+            let mut i = 1;
+            while v.contains(&col) {
+                col = format!("{orig_col}_{i}");
+                i += 1
+            }
+            v.push(col);
+            v
+        });
     _create_table(db, table_name, &normalized_cols);
 
     let insert_query = format!(
@@ -74,37 +79,36 @@ fn _load_table_from_path(
             .collect::<Vec<_>>()
             .join(", ")
     );
-    let pb = indicatif::ProgressBar::new(file_size);
+    let pb = indicatif::ProgressBar::new(progress_size);
     pb.set_style(
         indicatif::ProgressStyle::default_bar()
             .template("[{elapsed_precise}] [{wide_bar:.cyan/blue}] {bytes}/{total_bytes} ({eta})")?
             .progress_chars("#>-"),
     );
-    let mut records = reader.byte_records();
     let tx = db.transaction().unwrap();
     {
         let mut stmt = tx.prepare(&insert_query).expect("tx.prepare() failed");
-        while let Some(row) = records.next() {
-            let mut row = row?;
-            match row.len().cmp(&normalized_cols.len()) {
-                Ordering::Less => {
-                    for _ in 0..normalized_cols.len() - row.len() {
-                        row.push_field(b"");
-                    }
-                }
-                Ordering::Greater => {
-                    anyhow::bail!("Too many fields on row {}, fields: {:?}", num_rows + 1, row);
-                }
-                Ordering::Equal => {}
+        while let Some(record) = loader.next_record() {
+            let record = record?;
+            let row = record.iter();
+            let row_len = row.len();
+            if row_len > normalized_cols.len() {
+                anyhow::bail!(
+                    "Too many fields on row {}, fields: {:?}",
+                    num_rows + 1,
+                    row.collect::<Vec<_>>()
+                );
             }
+
             stmt.execute(rusqlite::params_from_iter(
-                row.iter().map(String::from_utf8_lossy),
+                row.chain(iter::repeat(&b""[..]).take(normalized_cols.len() - row_len))
+                    .map(String::from_utf8_lossy),
             ))
             .unwrap();
 
             num_rows += 1;
             if num_rows % 10000 == 0 {
-                pb.set_position(records.reader().position().byte())
+                pb.set_position(loader.progress_position());
             }
         }
     }
@@ -116,7 +120,7 @@ fn _load_table_from_path(
         num_rows,
         table_name,
         normalized_cols.join(", "),
-        path,
+        loader.name(),
     );
     Ok(normalized_cols)
 }
