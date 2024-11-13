@@ -1,5 +1,6 @@
 use clap::Parser;
 use std::iter;
+use std::path::Path;
 use std::sync::LazyLock;
 
 use csvsql::ExactSizeIterable;
@@ -41,9 +42,16 @@ fn _load_table_from_path(
     path: &str,
     delimiter: u8,
 ) -> anyhow::Result<Vec<String>> {
-    let loader = csvsql::CsvLoader::new(path, delimiter)?;
-
-    _load_table_from_loader(db, table_name, loader)
+    match Path::new(path).extension().map(|e| e.as_encoded_bytes()) {
+        Some(b"xlsx") => {
+            let loader = csvsql::XlsxLoader::new(path)?;
+            _load_table_from_loader(db, table_name, loader)
+        }
+        _ => {
+            let loader = csvsql::CsvLoader::new(path, delimiter)?;
+            _load_table_from_loader(db, table_name, loader)
+        }
+    }
 }
 
 fn _load_table_from_loader(
@@ -57,7 +65,7 @@ fn _load_table_from_loader(
     let normalized_cols =
         loader
             .raw_fields()?
-            .map(normalize_col)
+            .map(|c| normalize_col(c.as_ref()))
             .fold(vec![], |mut v, orig_col| {
                 let mut col = orig_col.clone();
                 let mut i = 1;
@@ -92,6 +100,7 @@ fn _load_table_from_loader(
             let record = record?;
             let row = record.iter();
             let row_len = row.len();
+            let row = row.map(|v| v.as_ref());
             if row_len > normalized_cols.len() {
                 anyhow::bail!(
                     "Too many fields on row {}, fields: {:?}",

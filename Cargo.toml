@@ -14,3 +14,4 @@ rustyline = "15"
 clap = { version = "4.5.21", features = ["derive"] }
 dirs = "5.0"
 anyhow = "1.0.93"
+calamine = "0.26.1"
