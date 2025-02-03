@@ -1,5 +1,4 @@
 use clap::Parser;
-use std::iter;
 use std::sync::LazyLock;
 
 use csvsql::ExactSizeIterable;
@@ -101,8 +100,11 @@ fn _load_table_from_loader(
             }
 
             stmt.execute(rusqlite::params_from_iter(
-                row.chain(iter::repeat(&b""[..]).take(normalized_cols.len() - row_len))
-                    .map(String::from_utf8_lossy),
+                row.chain(std::iter::repeat_n(
+                    &b""[..],
+                    normalized_cols.len() - row_len,
+                ))
+                .map(String::from_utf8_lossy),
             ))
             .unwrap();
 
