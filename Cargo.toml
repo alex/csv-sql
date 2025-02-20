@@ -2,7 +2,7 @@
 name = "csvsql"
 version = "0.1.0"
 authors = ["Alex Gaynor <alex.gaynor@gmail.com>"]
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 csv = "1.3"
