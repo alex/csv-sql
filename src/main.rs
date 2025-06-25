@@ -1,7 +1,8 @@
 use clap::Parser;
 use std::sync::LazyLock;
 
-use csvsql::ExactSizeIterable;
+use csvsql::loader::AsRef;
+use csvsql::Record;
 
 fn normalize_col(col: &str) -> String {
     static RE: LazyLock<regex::Regex> = LazyLock::new(|| regex::Regex::new(r"\(.*?\)$").unwrap());
@@ -91,6 +92,7 @@ fn _load_table_from_loader(
             let record = record?;
             let row = record.iter();
             let row_len = row.len();
+            let row = row.map(|v| v.as_ref());
             if row_len > normalized_cols.len() {
                 anyhow::bail!(
                     "Too many fields on row {}, fields: {:?}",
