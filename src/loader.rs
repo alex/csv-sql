@@ -1,18 +1,41 @@
 use std::fs::File;
-use std::iter;
 
-pub trait ExactSizeIterable {
-    fn iter(&self) -> impl iter::ExactSizeIterator<Item = &[u8]>;
+pub trait AsRef<'a, T>
+where
+    T: ?Sized,
+{
+    fn as_ref(&self) -> &'a T;
 }
 
-impl ExactSizeIterable for csv::ByteRecord {
-    fn iter(&self) -> impl iter::ExactSizeIterator<Item = &[u8]> {
+impl<'a> AsRef<'a, [u8]> for &'a [u8] {
+    fn as_ref(&self) -> &'a [u8] {
+        self
+    }
+}
+
+pub trait Record {
+    type Item<'a>: AsRef<'a, [u8]>
+    where
+        Self: 'a;
+
+    type Iter<'a>: ExactSizeIterator<Item = Self::Item<'a>>
+    where
+        Self: 'a;
+
+    fn iter(&self) -> Self::Iter<'_>;
+}
+
+impl Record for csv::ByteRecord {
+    type Item<'a> = &'a [u8];
+    type Iter<'a> = csv::ByteRecordIter<'a>;
+
+    fn iter(&self) -> Self::Iter<'_> {
         self.into_iter()
     }
 }
 
 pub trait Loader {
-    type RecordType: ExactSizeIterable;
+    type RecordType: Record;
 
     /// Name of the resource we're loading from (e.g., a file path).
     fn name(&self) -> &str;
